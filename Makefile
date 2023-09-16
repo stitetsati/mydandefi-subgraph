@@ -2,9 +2,13 @@ format:
 	./tools/format
 check-format:
 	./tools/checkFormat
-prepare:
-	python3 ./subgraph.py
-build:
-	graph codegen && graph build
+prepare-test:
+	NETWORK=goerli python3 ./subgraph.py
+prepare-prod:
+	NETWORK=mainnet python3 ./subgraph.py
+building-test:
+	make prepare-test && graph codegen && graph build
+building-prod:
+	make prepare-prod && graph codegen && graph build
 test:
 	npm run test

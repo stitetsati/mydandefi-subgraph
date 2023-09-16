@@ -19,30 +19,39 @@ dataSources:
           - name: MyDanPass
             file: ./abis/MyDanPass.json
         eventHandlers:
-          - event: Minted(address,uint256)
-          - handler: handleMinted
+          - event: Transfer(indexed address,indexed address,indexed uint256)
+            handler: handleTransfer
         file: ./src/mydan-pass.ts
     - kind: ethereum
-      name: MyDanDefiProxy
+      name: MyDanDefi
       network: goerli
       source:
         address: "${MYDANDEFI_PROXY_ADDRESS}"
-        abi: MyDanDefiProxy
+        abi: MyDanDefi
         startBlock: ${MYDANDEFI_PROXY_START_BLOCK}
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.7
         language: wasm/assemblyscript
         entities:
+          - MembershipTier
+          - Deposit
+          - User
           - Profile
+          - ReferralBonus
+          - Duration
+          - ReferralLevel
+          - ProfileReferralLevelData
         abis:
-          - name: MyDanDefiProxy
-            file: ./abis/MyDanDefiProxy.json
+          - name: MyDanDefi
+            file: ./abis/MyDanDefi.json
         eventHandlers:
-          - event: AdminChanged(address,address)
-            handler: handleAdminChanged
-          - event: BeaconUpgraded(indexed address)
-            handler: handleBeaconUpgraded
-          - event: Upgraded(indexed address)
-            handler: handleUpgraded
-        file: ./src/mydandefi-proxy.ts
+          - event: MembershipUpdated(uint256,(string,uint256,uint256,uint256,uint256,uint256))
+            handler: handleMembershipUpdated
+          - event: DurationBonusRateUpdated(uint256,uint256)
+            handler: handleDurationBonusRateUpdated
+          - event: MembershipInserted(uint256,(string,uint256,uint256,uint256,uint256,uint256))
+            handler: handleMembershipInserted
+          - event: ReferralBonusRateUpdated(uint256,uint256)
+            handler: handleReferralBonusRateUpdated
+        file: ./src/mydandefi.ts
