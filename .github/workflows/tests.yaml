@@ -22,7 +22,7 @@ jobs:
           submodules: recursive
       - name: Install Dependencies
         run: npm install
-      - name: Run Forge tests
+      - name: Run subgraph tests
         run: |
           npm run test
         id: test
