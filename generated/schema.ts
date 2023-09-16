@@ -103,30 +103,21 @@ export class MembershipTier extends Entity {
     this.set("totalDeposits", Value.fromBigDecimal(value));
   }
 
-  get collectableReferralLevels(): Array<string> {
-    let value = this.get("collectableReferralLevels");
+  get maxCollectableReferralLevel(): BigInt {
+    let value = this.get("maxCollectableReferralLevel");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toStringArray();
+      return value.toBigInt();
     }
   }
 
-  set collectableReferralLevels(value: Array<string>) {
-    this.set("collectableReferralLevels", Value.fromStringArray(value));
+  set maxCollectableReferralLevel(value: BigInt) {
+    this.set("maxCollectableReferralLevel", Value.fromBigInt(value));
   }
 
-  get profiles(): Array<string> {
-    let value = this.get("profiles");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set profiles(value: Array<string>) {
-    this.set("profiles", Value.fromStringArray(value));
+  get profiles(): ProfileLoader {
+    return new ProfileLoader("MembershipTier", this.get("id")!.toString(), "profiles");
   }
 }
 
@@ -333,17 +324,8 @@ export class User extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get profiles(): Array<string> {
-    let value = this.get("profiles");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set profiles(value: Array<string>) {
-    this.set("profiles", Value.fromStringArray(value));
+  get profiles(): ProfileLoader {
+    return new ProfileLoader("User", this.get("id")!.toString(), "profiles");
   }
 }
 
@@ -381,6 +363,19 @@ export class Profile extends Entity {
 
   set id(value: string) {
     this.set("id", Value.fromString(value));
+  }
+
+  get tokenId(): BigInt {
+    let value = this.get("tokenId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set tokenId(value: BigInt) {
+    this.set("tokenId", Value.fromBigInt(value));
   }
 
   get owner(): string {
@@ -452,17 +447,8 @@ export class Profile extends Entity {
     }
   }
 
-  get referredProfiles(): Array<string> {
-    let value = this.get("referredProfiles");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set referredProfiles(value: Array<string>) {
-    this.set("referredProfiles", Value.fromStringArray(value));
+  get referredProfiles(): ProfileLoader {
+    return new ProfileLoader("Profile", this.get("id")!.toString(), "referredProfiles");
   }
 
   get referredProfileCount(): i32 {
@@ -478,17 +464,8 @@ export class Profile extends Entity {
     this.set("referredProfileCount", Value.fromI32(value));
   }
 
-  get referralBonuses(): Array<string> {
-    let value = this.get("referralBonuses");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set referralBonuses(value: Array<string>) {
-    this.set("referralBonuses", Value.fromStringArray(value));
+  get referralBonuses(): ReferralBonusLoader {
+    return new ReferralBonusLoader("Profile", this.get("id")!.toString(), "referralBonuses");
   }
 }
 
@@ -734,17 +711,8 @@ export class Duration extends Entity {
     this.set("bonusDepositInterestRate", Value.fromBigDecimal(value));
   }
 
-  get deposits(): Array<string> {
-    let value = this.get("deposits");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set deposits(value: Array<string>) {
-    this.set("deposits", Value.fromStringArray(value));
+  get deposits(): DepositLoader {
+    return new DepositLoader("Duration", this.get("id")!.toString(), "deposits");
   }
 }
 
@@ -784,17 +752,17 @@ export class ReferralLevel extends Entity {
     this.set("id", Value.fromString(value));
   }
 
-  get level(): i32 {
+  get level(): BigInt {
     let value = this.get("level");
     if (!value || value.kind == ValueKind.NULL) {
-      return 0;
+      throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toI32();
+      return value.toBigInt();
     }
   }
 
-  set level(value: i32) {
-    this.set("level", Value.fromI32(value));
+  set level(value: BigInt) {
+    this.set("level", Value.fromBigInt(value));
   }
 
   get referralBonusRate(): BigDecimal {
@@ -886,6 +854,32 @@ export class ProfileReferralLevelData extends Entity {
     this.set("totalReferredPrincipals", Value.fromBigDecimal(value));
   }
 
+  get referredProfileCount(): i32 {
+    let value = this.get("referredProfileCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set referredProfileCount(value: i32) {
+    this.set("referredProfileCount", Value.fromI32(value));
+  }
+
+  get totalAnnualizedReferralBonuses(): BigDecimal {
+    let value = this.get("totalAnnualizedReferralBonuses");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigDecimal();
+    }
+  }
+
+  set totalAnnualizedReferralBonuses(value: BigDecimal) {
+    this.set("totalAnnualizedReferralBonuses", Value.fromBigDecimal(value));
+  }
+
   get referralBonuses(): Array<string> {
     let value = this.get("referralBonuses");
     if (!value || value.kind == ValueKind.NULL) {
@@ -897,5 +891,59 @@ export class ProfileReferralLevelData extends Entity {
 
   set referralBonuses(value: Array<string>) {
     this.set("referralBonuses", Value.fromStringArray(value));
+  }
+}
+
+export class ProfileLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): Profile[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<Profile[]>(value);
+  }
+}
+
+export class ReferralBonusLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): ReferralBonus[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<ReferralBonus[]>(value);
+  }
+}
+
+export class DepositLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): Deposit[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<Deposit[]>(value);
   }
 }

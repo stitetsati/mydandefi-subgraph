@@ -1,17 +1,20 @@
 import { BigInt } from "@graphprotocol/graph-ts";
-import { Minted } from "../generated/MyDanPass/MyDanPass";
-import { MembershipTier, Profile, User } from "../generated/schema";
-export function handleMinted(event: Minted): void {
-  let profile = new Profile(event.params.tokenId.toHex());
+import { Transfer } from "../generated/MyDanPass/MyDanPass";
+import { Profile } from "../generated/schema";
+import { loadUser, createProfile } from "./utils";
 
-  let lowestMembershipTier = MembershipTier.load("0")!;
-
-  let user = User.load(event.params.to.toHex());
-  if (user == null) {
-    user = new User(event.params.to.toHex());
-    user.save();
+export function handleTransfer(event: Transfer): void {
+  // genesis profile creation is handled here
+  let profile = Profile.load(event.params.tokenId.toHex());
+  let isGenesis = event.params.tokenId == BigInt.fromI32(0);
+  if (isGenesis && profile == null) {
+    profile = createProfile(event.params.tokenId.toHex(), event.params.tokenId);
   }
-  profile.owner = user.id;
-  profile.membershipTier = lowestMembershipTier.id;
+  if (profile == null) {
+    // non genesisTokenId, handled creation in PassMinted event
+    return;
+  }
+  let toUser = loadUser(event.params.to.toHex());
+  profile.owner = toUser.id;
   profile.save();
 }

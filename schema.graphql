@@ -5,8 +5,8 @@ type MembershipTier @entity {
   upperAmountThreshold: BigDecimal!
   interestRate: BigDecimal!
   totalDeposits: BigDecimal!
-  collectableReferralLevels: [ReferralLevel!]!
-  profiles: [Profile!]!
+  maxCollectableReferralLevel: BigInt!
+  profiles: [Profile!]! @derivedFrom(field: "membershipTier")
 }
 
 type Deposit @entity {
@@ -25,18 +25,19 @@ type Deposit @entity {
 
 type User @entity {
   id: ID!
-  profiles: [Profile!]!
+  profiles: [Profile!]! @derivedFrom(field: "owner")
 }
 type Profile @entity {
   id: ID!
+  tokenId: BigInt!
   owner: User!
   membershipTier: MembershipTier!
   deposits: [Deposit!]!
   referralCode: String!
   referredBy: Profile
-  referredProfiles: [Profile!]!
+  referredProfiles: [Profile!]! @derivedFrom(field: "referredBy")
   referredProfileCount: Int!
-  referralBonuses: [ReferralBonus!]!
+  referralBonuses: [ReferralBonus!]! @derivedFrom(field: "beneficiary")
 }
 
 type ReferralBonus @entity {
@@ -59,12 +60,12 @@ type Duration @entity {
   id: ID!
   duration: BigInt!
   bonusDepositInterestRate: BigDecimal!
-  deposits: [Deposit!]!
+  deposits: [Deposit!]! @derivedFrom(field: "duration")
 }
 
 type ReferralLevel @entity {
   id: ID!
-  level: Int!
+  level: BigInt!
   referralBonusRate: BigDecimal!
 }
 
