@@ -6,9 +6,9 @@ dataSources:
       name: MyDanPass
       network: goerli
       source:
-        address: "0x1968845Fd1E5d592CB2093eD6dAf299EDE7a4d4b"
+        address: "${MYDANPASS_ADDRESS}"
         abi: MyDanPass
-        startBlock: 9693357
+        startBlock: ${MYDANPASS_START_BLOCK}
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.7
@@ -20,23 +20,21 @@ dataSources:
             file: ./abis/MyDanPass.json
         eventHandlers:
           - event: Minted(address,uint256)
-            handler: handleMinted
+          - handler: handleMinted
         file: ./src/mydan-pass.ts
     - kind: ethereum
       name: MyDanDefiProxy
       network: goerli
       source:
-        address: "0x0647F209597ec01c0a71D3C42495f3cbD5EbA8aA"
+        address: "${MYDANDEFI_PROXY_ADDRESS}"
         abi: MyDanDefiProxy
-        startBlock: 9693359
+        startBlock: ${MYDANDEFI_PROXY_START_BLOCK}
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.7
         language: wasm/assemblyscript
         entities:
-          - AdminChanged
-          - BeaconUpgraded
-          - Upgraded
+          - Profile
         abis:
           - name: MyDanDefiProxy
             file: ./abis/MyDanDefiProxy.json

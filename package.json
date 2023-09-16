@@ -2,8 +2,6 @@
   "name": "mydandefi-subgraph-test",
   "license": "UNLICENSED",
   "scripts": {
-    "codegen": "graph codegen",
-    "build": "graph build",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ mydandefi-subgraph-test",
     "create-local": "graph create --node http://localhost:8020/ mydandefi-subgraph-test",
     "remove-local": "graph remove --node http://localhost:8020/ mydandefi-subgraph-test",
@@ -14,5 +12,11 @@
     "@graphprotocol/graph-cli": "0.58.0",
     "@graphprotocol/graph-ts": "0.30.0"
   },
-  "devDependencies": { "matchstick-as": "0.5.0" }
+  "devDependencies": {
+    "matchstick-as": "^0.5.2",
+    "prettier": "^3.0.3"
+  },
+  "prettier": {
+    "printWidth": 200
+  }
 }

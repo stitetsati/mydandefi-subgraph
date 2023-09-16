@@ -1,8 +1,0 @@
-{
-  "goerli": {
-    "MyDanDefiProxy": {
-      "address": "0x0647F209597ec01c0a71D3C42495f3cbD5EbA8aA",
-      "startBlock": 9693359
-    }
-  }
-}

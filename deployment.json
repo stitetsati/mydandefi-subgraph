@@ -1,0 +1,12 @@
+{
+  "MYDANPASS_ADDRESS": {
+    "mainnet": 0,
+    "goerli": "0xEa1fd634D1C4127794c464858d7379C3DA3CD252"
+  },
+  "MYDANPASS_START_BLOCK": { "mainnet": 1, "goerli": "9693357" },
+  "MYDANDEFI_PROXY_ADDRESS": {
+    "mainnet": 1,
+    "goerli": "0xa3578eE2A788B52ab803414b42436D99BA9504D4"
+  },
+  "MYDANDEFI_PROXY_START_BLOCK": { "mainnet": 1, "goerli": "9693359" }
+}

@@ -1,6 +1,79 @@
-type ExampleEntity @entity {
-  id: Bytes!
-  count: BigInt!
-  previousAdmin: Bytes! # address
-  newAdmin: Bytes! # address
+type MembershipTier @entity {
+  id: ID!
+  name: String!
+  lowerAmountThreshold: BigDecimal!
+  upperAmountThreshold: BigDecimal!
+  interestRate: BigDecimal!
+  totalDeposits: BigDecimal!
+  collectableReferralLevels: [ReferralLevel!]!
+  profiles: [Profile!]!
+}
+
+type Deposit @entity {
+  id: ID!
+  principal: BigDecimal!
+  depositor: Profile!
+  startTime: BigInt!
+  maturity: BigInt!
+  duration: Duration!
+  annualizedInterestReceivable: BigDecimal!
+  interestReceivable: BigDecimal!
+  interestCollected: BigDecimal!
+  lastClaimedAt: BigInt!
+  isWithdrawn: Boolean!
+}
+
+type User @entity {
+  id: ID!
+  profiles: [Profile!]!
+}
+type Profile @entity {
+  id: ID!
+  owner: User!
+  membershipTier: MembershipTier!
+  deposits: [Deposit!]!
+  referralCode: String!
+  referredBy: Profile
+  referredProfiles: [Profile!]!
+  referredProfileCount: Int!
+  referralBonuses: [ReferralBonus!]!
+}
+
+type ReferralBonus @entity {
+  id: ID!
+  beneficiary: Profile!
+  associatedDeposit: Deposit!
+  referralLevel: ReferralLevel!
+  bonusReceivable: BigDecimal!
+  annualizedBonusReceivable: BigDecimal!
+  bonusClaimed: BigDecimal!
+  startTime: BigInt!
+  maturity: BigInt!
+  duration: Duration!
+  lastClaimedAt: BigInt!
+  isFinished: Boolean!
+}
+
+
+type Duration @entity {
+  id: ID!
+  duration: BigInt!
+  bonusDepositInterestRate: BigDecimal!
+  deposits: [Deposit!]!
+}
+
+type ReferralLevel @entity {
+  id: ID!
+  level: Int!
+  referralBonusRate: BigDecimal!
+}
+
+type ProfileReferralLevelData @entity {
+  id: ID!
+  profile: Profile!
+  referralLevel: ReferralLevel!
+  totalReferredPrincipals: BigDecimal!
+  referredProfileCount: Int!
+  totalAnnualizedReferralBonuses: BigDecimal!
+  referralBonuses: [ReferralBonus!]!
 }

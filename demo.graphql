@@ -1,0 +1,422 @@
+"""
+The Comptroller type has protocol level variables stored
+"""
+type Comptroller @entity {
+  "ID is set to 1"
+  id: ID!
+  "Address of the comptroller"
+  address: Bytes!
+  "Address of the admin of comptroller"
+  admin: Bytes!
+  "Address of the implementation of comptroller"
+  implementation: Bytes!
+  "The number of supported markets"
+  totalMarkets: Int!
+  "Address of price oracle the comptroller uses"
+  priceOracle: Bytes!
+  "Factor used to determine repayAmount for liquidating"
+  closeFactor: BigInt!
+  "The percent bonus liquidators get for liquidating"
+  liquidationIncentive: BigInt!
+  "Address of guardian who can pause market interactions"
+  pauseGuardian: Bytes!
+  "Address of liquidity mining module"
+  liquidityMining: Bytes!
+  "State of the seize guardian being paused"
+  seizeGuardianPaused: Boolean
+  "State of the transfer guardian being paused"
+  transferGuardianPaused: Boolean
+}
+
+enum OracleType {
+  Chainlink
+  Band
+  V1
+}
+
+"""
+Market stores all high level variables for a cToken market
+"""
+type Market @entity {
+  "cToken address in string as the unique identifier"
+  id: ID!
+  "cToken address in bytes"
+  address: Bytes!
+  "cToken symbol"
+  symbol: String!
+  "cToken name"
+  name: String!
+  "Underlying token address"
+  underlyingAddress: Bytes!
+  "Underlying token decimal length"
+  underlyingDecimals: Int!
+  "Underlying token symbol"
+  underlyingSymbol: String!
+  "Underlying token name"
+  underlyingName: String!
+  "Address of the implementation of cToken"
+  implementation: Bytes!
+  "Address of the interest rate model"
+  interestRateModelAddress: Bytes!
+  # "The type of oracle on this market"
+  # oracle: OracleType!
+  "Collateral factor determining how much one can borrow"
+  collateralFactor: BigDecimal!
+  "The factor determining interest that goes to reserves"
+  reserveFactor: BigDecimal!
+  "The amount of `cTokens` that are able to be used as collateral"
+  collateralCap: BigDecimal!
+  "The cap of totalSupply in underlying tokens"
+  supplyCap: BigDecimal!
+  "The cap of total borrow"
+  borrowCap: BigDecimal!
+  "Is supply paused"
+  supplyPaused: Boolean!
+  "Is borrow paused"
+  borrowPaused: Boolean!
+  "Is flashloan paused"
+  flashloanPaused: Boolean!
+  "Is market delisted"
+  delisted: Boolean!
+  "Credit limits of this market"
+  creditLimits: [CreditLimit!] @derivedFrom(field:"market")
+  "The cToken contract balance of ERC20 or ETH"
+  cash: BigDecimal!
+  "Exchange rate of tokens / cTokens"
+  exchangeRate:  BigDecimal!
+  "Borrows in the market"
+  totalBorrows: BigDecimal!
+  "cToken supply. cTokens have 8 decimals"
+  totalSupply: BigDecimal!
+  "Total number of cToken used as collateral"
+  totalCollateralTokens: BigDecimal!
+  "Timestamp the market was most recently updated"
+  blockTime: Int!
+}
+
+"""
+Account is an ETH address, with a list of all cToken markets the account has
+participated in, along with liquidation information.
+"""
+type Account @entity {
+    "User ETH address"
+    id: ID!
+    "Array of CTokens user is in"
+    tokens: [AccountCToken!]! @derivedFrom(field: "account")
+    stakingRewardsAccountActions: [StakingRewardsAccountAction!] @derivedFrom(field:"account")
+}
+
+"""
+CreditLimit is a protocol to protocol lending service provided by Iron Bank.
+Each entity stores information of a single borrower within a single cToken market
+"""
+type CreditLimit @entity {
+  "Concatenation of borrower address and cToken address"
+  id: ID!
+  "The borrower of this credit limit"
+  borrower: Bytes!
+  "The market which credit limit is given"
+  market: Market!
+  "The max amount that can be borrowed"
+  creditLimit: BigDecimal!
+  "Current borrow balance stored in contract (exclusive of interest since blockTimestamp)"
+  creditBorrow: BigDecimal!
+  "Timestamp the market was most recently updated"
+  blockTime: Int!
+}
+
+"""
+AccountCToken is a single account within a single cToken market, with data such
+as interest earned or paid
+"""
+type AccountCToken @entity {
+  "Concatenation of CToken address and user address"
+  id: ID!
+  "Relation to market"
+  market: Market!
+  "Symbol of the cToken"
+  symbol: String!
+  "Relation to user"
+  account: Account!
+  "Transactions data"
+  transactions: [AccountCTokenTransaction!]! @derivedFrom(field:"account")
+  "True if user is entered, false if they are exited"
+  enteredMarket: Boolean!
+  "CToken balance of the user"
+  cTokenBalance: BigDecimal!
+  "CToken balance that can be used as collateral"
+  cTokenCollateralBalance: BigDecimal!
+  "Current borrow balance stored in contract (exclusive of interest since accrualBlockNumber)"
+  storedBorrowBalance: BigDecimal!
+  "Timestamp the market was most recently updated"
+  blockTime: Int!
+}
+
+"""
+Auxiliary entity for AccountCToken
+"""
+type AccountCTokenTransaction @entity {
+  id: ID!
+
+  account: AccountCToken!
+
+  tx_hash: Bytes!
+
+  timestamp: BigInt!
+
+  block: BigInt!
+
+  logIndex: BigInt!
+}
+
+"""
+FlashloanEvent stores information for flashloan. The event is emitted from
+the cToken market address.
+"""
+type FlashloanEvent @entity {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "The receiver of the flashloan"
+  receiver: Bytes!
+  "The market which flashloan was performed"
+  market: Market!
+  "The amount of flashloan"
+  amount: BigDecimal!
+  "Total Fee of this flashloan"
+  totalFee: BigDecimal!
+  "Reserves fee"
+  reservesFee: BigDecimal!
+}
+
+"""
+TransferEvent will be stored for every mint, redeem, liquidation, and any normal
+transfer between two accounts.
+"""
+type TransferEvent @entity {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "cToken Market"
+  market: Market!
+  "cTokens transferred"
+  amount: BigDecimal!
+  "Account that received tokens"
+  to: Bytes!
+  "Account that sent tokens"
+  from: Bytes!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "Symbol of the cToken transferred"
+  cTokenSymbol: String!
+}
+
+"""
+MintEvent stores information for mints. From address will always be a cToken
+market address
+"""
+type MintEvent @entity {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "cToken Market"
+  market: Market!
+  "cTokens transferred"
+  amount: BigDecimal!
+  "Account that received tokens"
+  minter: Bytes!
+  "cToken of the minted tokens"
+  cToken: Bytes!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "Symbol of the cToken transferred"
+  cTokenSymbol: String!
+  "Underlying token amount transferred"
+  underlyingAmount: BigDecimal
+}
+
+"""
+RedeemEvent stores information for redeems. To address will always be a
+cToken market address
+"""
+type RedeemEvent @entity {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "cToken Market"
+  market: Market!
+  "cTokens transferred"
+  amount: BigDecimal!
+  "cToken of the redeemed tokens"
+  cToken: Bytes!
+  "Redeemer"
+  redeemer: Bytes!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "Symbol of the cToken transferred"
+  cTokenSymbol: String!
+  "Underlying token amount transferred"
+  underlyingAmount: BigDecimal
+}
+
+"""
+LiquidationEvent stores information for liquidations. The event is emitted from
+the cToken market address.
+"""
+type LiquidationEvent @entity {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "cToken Market"
+  market: Market!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "Liquidator"
+  liquidator: Bytes!
+  "Borrower"
+  borrower: Bytes!
+  "Seized amount of cToken"
+  seizeAmount: BigDecimal!
+  "cToken that was repaid by liquidator"
+  cToken: Bytes!
+  "cToken that was seized by liquidator"
+  seizeCToken: Bytes!
+  "Underlying cToken amount that was repaid by liquidator"
+  underlyingRepayAmount: BigDecimal!
+  "Underlying cToken amount that was seized by liquidator"
+  underlyingSeizeAmount: BigDecimal!
+  "Remaining Underlying collateral amount of borrower"
+  borrowerRemainingUnderlyingCollateral: BigDecimal!
+  "Remaining borrow balance of borrower"
+  borrowerRemainingBorrowBalance: BigDecimal!
+}
+
+"""
+Underlying transfers are transfers of underlying collateral for both borrows
+and repays
+"""
+interface UnderlyingTransfer {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "cToken Market"
+  market: Market!
+  "Amount of underlying borrowed"
+  amount: BigDecimal!
+  "Total borrows of this asset the account has"
+  accountBorrows: BigDecimal!
+  "Account that borrowed the tokens"
+  borrower: Bytes!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "Symbol of the borrowed underlying asset"
+  underlyingSymbol: String!
+}
+
+"""
+BorrowEvent stores information for borrows
+"""
+type BorrowEvent implements UnderlyingTransfer @entity {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "cToken Market"
+  market: Market!
+  "Amount of underlying borrowed"
+  amount: BigDecimal!
+  "Total borrows of this asset the account has"
+  accountBorrows: BigDecimal!
+  "Account that borrowed the tokens"
+  borrower: Bytes!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "Symbol of the borrowed underlying asset"
+  underlyingSymbol: String!
+  "cToken of the borrowed tokens"
+  cToken: Bytes!
+}
+
+"""
+RepayEvent stores information for repays. Payer is not always the same as
+borrower, such as in the event of a Liquidation
+"""
+type RepayEvent implements UnderlyingTransfer @entity {
+  "Transaction hash concatenated with log index"
+  id: ID!
+  "cToken Market"
+  market: Market!
+  "Amount of underlying repaid"
+  amount: BigDecimal!
+  "Total borrows of this asset the account has"
+  accountBorrows: BigDecimal!
+  "Account that borrowed the tokens"
+  borrower: Bytes!
+  "Block number"
+  blockNumber: Int!
+  "Block time"
+  blockTime: Int!
+  "Symbol of the borrowed underlying asset"
+  underlyingSymbol: String!
+  "Payer of the borrow funds"
+  payer: Bytes!
+  "cToken of the repaid tokens"
+  cToken: Bytes!
+}
+"""
+StakingRewardsFactory stores the StakingReward created by the factory
+"""
+type StakingRewardsFactory @entity {
+  "factory address in string as the unique identifier"
+  id: ID!
+  "factory address in bytes"
+  address: Bytes!
+  "StakingRewards contracts created by this factory"
+  stakingRewards: [StakingRewards!] @derivedFrom(field:"factory")
+}
+
+"""
+StakingRewards stores the StakingRewards created by the factory
+"""
+type StakingRewards @entity {
+  "contract address in string as the unique identifier"
+  id: ID!
+  "contract address in bytes"
+  address: Bytes!
+  "the factory that created this StakingRewards"
+  factory: StakingRewardsFactory!
+  "the market iToken associated with this StakingRewards"
+  market: Market!
+  "total amount staked in this StakingRewards contract"
+  totalStaked: BigDecimal!
+  "all staking user records associated with this contract"
+  stakingRewardsAccountActions: [StakingRewardsAccountAction!] @derivedFrom(field:"stakingRewards")
+}
+
+"""
+StakingRewardsAccountAction records an account's action on any StakingRewards contract
+"""
+type StakingRewardsAccountAction @entity {
+  "tx hash concatenanted with logIndex"
+  id: ID!
+  "block timestamp"
+  blockTime: Int!
+  "stakingRewards contract associated with this action"
+  stakingRewards: StakingRewards!
+  "user account associated with this action"
+  account: Account!
+  "type of action"
+  type: Int!
+  "token associated with this action"
+  token: String!
+  "amount associated with this action"
+  amount: BigDecimal!
+}
