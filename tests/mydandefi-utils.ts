@@ -69,8 +69,8 @@ export function createDurationBonusRateUpdatedEvent(duration: BigInt, newRate: B
   let durationBonusRateUpdatedEvent = changetype<DurationBonusRateUpdated>(newMockEvent());
 
   durationBonusRateUpdatedEvent.parameters = new Array();
-  durationBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("duration", ethereum.Value.fromSignedBigInt(duration)));
-  durationBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("newRate", ethereum.Value.fromSignedBigInt(newRate)));
+  durationBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("duration", ethereum.Value.fromUnsignedBigInt(duration)));
+  durationBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("newRate", ethereum.Value.fromUnsignedBigInt(newRate)));
   return durationBonusRateUpdatedEvent;
 }
 
@@ -78,8 +78,8 @@ export function createReferralBonusRateUpdatedEvent(referralLevel: BigInt, bonus
   let referralBonusRateUpdatedEvent = changetype<ReferralBonusRateUpdated>(newMockEvent());
 
   referralBonusRateUpdatedEvent.parameters = new Array();
-  referralBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("referralLevel", ethereum.Value.fromSignedBigInt(referralLevel)));
-  referralBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("bonusRate", ethereum.Value.fromSignedBigInt(bonusRate)));
+  referralBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("referralLevel", ethereum.Value.fromUnsignedBigInt(referralLevel)));
+  referralBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("bonusRate", ethereum.Value.fromUnsignedBigInt(bonusRate)));
   return referralBonusRateUpdatedEvent;
 }
 
@@ -102,8 +102,19 @@ export function createReferralCodeCreatedEvent(referralCode: string, tokenId: Bi
   return referralCodeCreatedEvent;
 }
 
-// event PassMinted(address minter, uint256 mintedTokenId, uint256 referrerTokenId);
-// event ReferralCodeCreated(string referralCode, uint256 tokenId);
+export function createDepositCreatedEvent(tokenId: BigInt, depositId: BigInt, amount: BigInt, duration: BigInt, interestRate: BigInt, interestReceivable: BigInt): DepositCreated {
+  let depositCreatedEvent = changetype<DepositCreated>(newMockEvent());
+
+  depositCreatedEvent.parameters = new Array();
+  depositCreatedEvent.parameters.push(new ethereum.EventParam("tokenId", ethereum.Value.fromSignedBigInt(tokenId)));
+  depositCreatedEvent.parameters.push(new ethereum.EventParam("depositId", ethereum.Value.fromSignedBigInt(depositId)));
+  depositCreatedEvent.parameters.push(new ethereum.EventParam("amount", ethereum.Value.fromSignedBigInt(amount)));
+  depositCreatedEvent.parameters.push(new ethereum.EventParam("duration", ethereum.Value.fromSignedBigInt(duration)));
+  depositCreatedEvent.parameters.push(new ethereum.EventParam("interestRate", ethereum.Value.fromSignedBigInt(interestRate)));
+  depositCreatedEvent.parameters.push(new ethereum.EventParam("interestReceivable", ethereum.Value.fromSignedBigInt(interestReceivable)));
+  return depositCreatedEvent;
+}
+
 // event ReferralRewardCreated(uint256 referrerTokenId, uint256 referralBonusId, uint256 referralLevel);
 // event DepositCreated(uint256 tokenId, uint256 depositId, uint256 amount, uint256 duration, uint256 interestRate, uint256 interestReceivable);
 // event MembershipTierChanged(uint256 tokenId, uint256 membershipTierIndex);

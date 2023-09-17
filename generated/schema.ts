@@ -430,8 +430,8 @@ export class Profile extends Entity {
     this.set("deposits", Value.fromStringArray(value));
   }
 
-  get totalDeposit(): BigDecimal {
-    let value = this.get("totalDeposit");
+  get totalDeposits(): BigDecimal {
+    let value = this.get("totalDeposits");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -439,8 +439,8 @@ export class Profile extends Entity {
     }
   }
 
-  set totalDeposit(value: BigDecimal) {
-    this.set("totalDeposit", Value.fromBigDecimal(value));
+  set totalDeposits(value: BigDecimal) {
+    this.set("totalDeposits", Value.fromBigDecimal(value));
   }
 
   get referralCode(): string | null {
