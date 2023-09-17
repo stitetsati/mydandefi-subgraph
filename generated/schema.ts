@@ -430,17 +430,21 @@ export class Profile extends Entity {
     this.set("deposits", Value.fromStringArray(value));
   }
 
-  get referralCode(): string {
+  get referralCode(): string | null {
     let value = this.get("referralCode");
     if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
+      return null;
     } else {
       return value.toString();
     }
   }
 
-  set referralCode(value: string) {
-    this.set("referralCode", Value.fromString(value));
+  set referralCode(value: string | null) {
+    if (!value) {
+      this.unset("referralCode");
+    } else {
+      this.set("referralCode", Value.fromString(<string>value));
+    }
   }
 
   get referredBy(): string | null {

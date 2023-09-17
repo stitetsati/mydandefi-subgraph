@@ -13,7 +13,7 @@ export function loadUser(id: string): User {
 export function createProfile(id: string, tokenId: BigInt): Profile {
   let profile = new Profile(id);
   profile.tokenId = tokenId;
-  profile.membershipTier = "0";
+  profile.membershipTier = "0x0";
   profile.referredProfileCount = 0;
   profile.deposits = [];
   let isGenesis = tokenId == BigInt.fromI32(0);

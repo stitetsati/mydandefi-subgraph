@@ -1,6 +1,21 @@
 import { newMockEvent } from "matchstick-as";
 import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts";
-import { MembershipInserted, MembershipUpdated, DurationBonusRateUpdated, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
+import {
+  MembershipUpdated,
+  DurationBonusRateUpdated,
+  MembershipInserted,
+  ReferralBonusRateUpdated,
+  PassMinted,
+  ReferralCodeCreated,
+  ReferralRewardCreated,
+  DepositCreated,
+  MembershipTierChanged,
+  InterestClaimed,
+  ReferralBonusClaimed,
+  ReferralBonusLevelCollectionActivated,
+  ReferralBonusLevelCollectionDeactivated,
+  DepositWithdrawn,
+} from "../generated/MyDanDefi/MyDanDefi";
 
 export function createMembershipInsertedEvent(
   index: BigInt,
@@ -67,3 +82,25 @@ export function createReferralBonusRateUpdatedEvent(referralLevel: BigInt, bonus
   referralBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("bonusRate", ethereum.Value.fromSignedBigInt(bonusRate)));
   return referralBonusRateUpdatedEvent;
 }
+
+export function createPassMintedEvent(minter: Address, tokenId: BigInt, referrerTokenId: BigInt): PassMinted {
+  let passMintedEvent = changetype<PassMinted>(newMockEvent());
+
+  passMintedEvent.parameters = new Array();
+  passMintedEvent.parameters.push(new ethereum.EventParam("minter", ethereum.Value.fromAddress(minter)));
+  passMintedEvent.parameters.push(new ethereum.EventParam("mintedTokenId", ethereum.Value.fromSignedBigInt(tokenId)));
+  passMintedEvent.parameters.push(new ethereum.EventParam("referrerTokenID", ethereum.Value.fromSignedBigInt(referrerTokenId)));
+  return passMintedEvent;
+}
+
+// event PassMinted(address minter, uint256 mintedTokenId, uint256 referrerTokenId);
+// event ReferralCodeCreated(string referralCode, uint256 tokenId);
+// event ReferralRewardCreated(uint256 referrerTokenId, uint256 referralBonusId, uint256 referralLevel);
+// event DepositCreated(uint256 tokenId, uint256 depositId, uint256 amount, uint256 duration, uint256 interestRate, uint256 interestReceivable);
+// event MembershipTierChanged(uint256 tokenId, uint256 membershipTierIndex);
+// event InterestClaimed(uint256 tokenId, uint256 depositId, uint256 interestCollectible);
+// event ReferralBonusClaimed(uint256 tokenId, uint256 referralBonusId, uint256 rewardCollectible);
+// event ReferralBonusLevelCollectionActivated(uint256 tokenId, uint256 referralLevel, uint256 logIndex, uint256 timestamp);
+// event ReferralBonusLevelCollectionDeactivated(uint256 tokenId, uint256 referralLevel, uint256 logIndex, uint256 timestamp);
+// event DepositWithdrawn(uint256 tokenId, uint256 depositId, uint256 principal);
+// event ReferralBonusRateUpdated(uint256 referralLevel, uint256 bonusRate);

@@ -1,8 +1,8 @@
 import { assert, describe, test, clearStore, beforeAll, afterAll } from "matchstick-as/assembly/index";
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { DurationBonusRateUpdated, MembershipInserted, MembershipUpdated, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
-import { handleMembershipInserted, handleMembershipUpdated, handleDurationBonusRateUpdated, handleReferralBonusRateUpdated } from "../src/mydandefi";
-import { createDurationBonusRateUpdatedEvent, createMembershipInsertedEvent, createMembershipUpdatedEvent, createReferralBonusRateUpdatedEvent } from "./mydandefi-utils";
+import { handleMembershipInserted, handleMembershipUpdated, handleDurationBonusRateUpdated, handleReferralBonusRateUpdated, handlePassMinted } from "../src/mydandefi";
+import { createPassMintedEvent, createDurationBonusRateUpdatedEvent, createMembershipInsertedEvent, createMembershipUpdatedEvent, createReferralBonusRateUpdatedEvent } from "./mydandefi-utils";
 import { handleTransfer } from "../src/mydanpass";
 import { createTransferEvent } from "./mydanpass-utils";
 
@@ -49,5 +49,16 @@ describe("test mydandefi event handlers", () => {
     handleReferralBonusRateUpdated(event);
     assert.entityCount("ReferralLevel", 1);
     assert.fieldEquals("Duration", "0x1", "bonusDepositInterestRate", "1");
+  });
+  test("test handlePassMinted", () => {
+    assert.entityCount("User", 1);
+    let tokenId = BigInt.fromI32(1);
+    let referrerTokenId = BigInt.fromI32(0);
+    let minter = (toAddress = Address.fromString("0x0000000000000000000000000000000000000003"));
+    let event = createPassMintedEvent(minter, tokenId, referrerTokenId);
+    handlePassMinted(event);
+    assert.entityCount("User", 2);
+    assert.entityCount("Profile", 2);
+    assert.fieldEquals("Profile", "0x1", "tokenId", "1");
   });
 });

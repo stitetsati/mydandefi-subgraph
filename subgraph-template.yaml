@@ -54,4 +54,25 @@ dataSources:
             handler: handleMembershipInserted
           - event: ReferralBonusRateUpdated(uint256,uint256)
             handler: handleReferralBonusRateUpdated
+          - event: PassMinted(address,uint256,uint256)
+            handler: handlePassMinted
+          - event: ReferralCodeCreated(string,uint256)
+            handler: handleReferralCodeCreated
+          - event: ReferralRewardCreated(uint256,uint256,uint256)
+            handler: handleReferralRewardCreated
+          - event: DepositCreated(uint256,uint256,uint256,uint256,uint256,uint256)
+            handler: handleDepositCreated
+          - event: MembershipTierChanged(uint256,uint256)
+            handler: handleMembershipTierChanged
+          - event: InterestClaimed(uint256,uint256,uint256)
+            handler: handleInterestClaimed
+          - event: ReferralBonusClaimed(uint256,uint256,uint256)
+            handler: handleReferralBonusClaimed
+          - event: ReferralBonusLevelCollectionActivated(uint256,uint256,uint256,uint256)
+            handler: handleReferralBonusLevelCollectionActivated
+          - event: ReferralBonusLevelCollectionDeactivated(uint256,uint256,uint256,uint256)
+            handler: handleReferralBonusLevelCollectionDeactivated
+          - event: DepositWithdrawn(uint256,uint256,uint256)
+            handler: handleDepositWithdrawn
+
         file: ./src/mydandefi.ts
