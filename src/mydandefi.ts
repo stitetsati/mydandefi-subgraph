@@ -15,7 +15,7 @@ import {
   ReferralBonusLevelCollectionDeactivated,
   DepositWithdrawn,
 } from "../generated/MyDanDefi/MyDanDefi";
-import { ReferralLevel, Duration, MembershipTier, Profile, User } from "../generated/schema";
+import { ReferralLevel, Duration, MembershipTier, Profile, User, Deposit } from "../generated/schema";
 import { exponentToBigDecimal, loadUser, createProfile } from "./utils";
 
 export function handleMembershipInserted(event: MembershipInserted): void {
@@ -81,9 +81,40 @@ export function handleReferralCodeCreated(event: ReferralCodeCreated): void {
   profile.referralCode = event.params.referralCode;
   profile.save();
 }
+
+export function handleDepositCreated(event: DepositCreated): void {
+  let profile = Profile.load(event.params.tokenId.toHex())!;
+  // create deposit
+  let deposit = new Deposit(event.params.depositId.toHex());
+  deposit.depositor = profile.id;
+  deposit.principal = event.params.amount.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+  deposit.duration = Duration.load(event.params.duration.toHex())!.id;
+  deposit.startTime = event.block.timestamp;
+  deposit.maturity = event.block.timestamp.plus(event.params.duration);
+  let oneYear = BigDecimal.fromString("31536000");
+  let interestReceivableScaled = event.params.interestReceivable.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+  let annualizedInterestReceivable = interestReceivableScaled.times(oneYear).div(event.params.duration.toBigDecimal());
+  deposit.annualizedInterestReceivable = annualizedInterestReceivable;
+  deposit.interestReceivable = interestReceivableScaled;
+  deposit.interestCollected = BigDecimal.fromString("0");
+  deposit.lastClaimedAt = BigInt.fromI32(0);
+  deposit.isWithdrawn = false;
+  deposit.save();
+  // effects to profile and membership
+  let membershipTier = MembershipTier.load(profile.membershipTier)!;
+
+  membershipTier.totalDeposits = membershipTier.totalDeposits.plus(deposit.principal);
+  membershipTier.save();
+  profile.totalDeposits = profile.totalDeposits.plus(deposit.principal);
+  profile.save();
+}
+export function handleMembershipTierChanged(event: MembershipTierChanged): void {
+  let profile = Profile.load(event.params.tokenId.toHex())!;
+  let membershipTier = MembershipTier.load(event.params.membershipTierIndex.toHex())!;
+  profile.membershipTier = membershipTier.id;
+  profile.save();
+}
 export function handleReferralRewardCreated(event: ReferralRewardCreated): void {}
-export function handleDepositCreated(event: DepositCreated): void {}
-export function handleMembershipTierChanged(event: MembershipTierChanged): void {}
 export function handleInterestClaimed(event: InterestClaimed): void {}
 export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {}
 export function handleReferralBonusLevelCollectionActivated(event: ReferralBonusLevelCollectionActivated): void {}
