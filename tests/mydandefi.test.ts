@@ -1,8 +1,15 @@
 import { assert, describe, test, clearStore, beforeAll, afterAll } from "matchstick-as/assembly/index";
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { DurationBonusRateUpdated, MembershipInserted, MembershipUpdated, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
-import { handleMembershipInserted, handleMembershipUpdated, handleDurationBonusRateUpdated, handleReferralBonusRateUpdated, handlePassMinted } from "../src/mydandefi";
-import { createPassMintedEvent, createDurationBonusRateUpdatedEvent, createMembershipInsertedEvent, createMembershipUpdatedEvent, createReferralBonusRateUpdatedEvent } from "./mydandefi-utils";
+import { handleMembershipInserted, handleMembershipUpdated, handleDurationBonusRateUpdated, handleReferralBonusRateUpdated, handlePassMinted, handleReferralCodeCreated } from "../src/mydandefi";
+import {
+  createReferralCodeCreatedEvent,
+  createPassMintedEvent,
+  createDurationBonusRateUpdatedEvent,
+  createMembershipInsertedEvent,
+  createMembershipUpdatedEvent,
+  createReferralBonusRateUpdatedEvent,
+} from "./mydandefi-utils";
 import { handleTransfer } from "../src/mydanpass";
 import { createTransferEvent } from "./mydanpass-utils";
 
@@ -60,5 +67,10 @@ describe("test mydandefi event handlers", () => {
     assert.entityCount("User", 2);
     assert.entityCount("Profile", 2);
     assert.fieldEquals("Profile", "0x1", "tokenId", "1");
+  });
+  test("test handleReferralCodeCreated", () => {
+    let event = createReferralCodeCreatedEvent("hello", BigInt.fromI32(1));
+    handleReferralCodeCreated(event);
+    assert.fieldEquals("Profile", "0x1", "referralCode", "hello");
   });
 });
