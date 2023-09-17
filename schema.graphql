@@ -34,7 +34,7 @@ type Profile @entity {
   owner: User!
   membershipTier: MembershipTier!
   deposits: [Deposit!]!
-  referralCode: String!
+  referralCode: String
   referredBy: Profile
   referredProfiles: [Profile!]! @derivedFrom(field: "referredBy")
   referredProfileCount: Int!
