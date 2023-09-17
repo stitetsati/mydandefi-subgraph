@@ -1,4 +1,4 @@
-import { assert, describe, test, clearStore, beforeAll, afterAll, afterEach,beforeEach } from "matchstick-as/assembly/index";
+import { assert, describe, test, clearStore, beforeAll, afterAll, afterEach, beforeEach } from "matchstick-as/assembly/index";
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { DurationBonusRateUpdated, MembershipInserted, MembershipUpdated, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
 import { handleMembershipInserted, handleMembershipUpdated, handleDurationBonusRateUpdated, handleReferralBonusRateUpdated, handlePassMinted, handleReferralCodeCreated } from "../src/mydandefi";
@@ -42,8 +42,16 @@ describe("test mydandefi event handlers", () => {
     assert.fieldEquals("MembershipTier", "0x1", "name", "test2");
   });
   test("test handleMembershipUpdated", () => {
-    let membershipInsertedEvent: MembershipInserted = createMembershipInsertedEvent(BigInt.fromI32(1), "test2", BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0));
-    handleMembershipInserted(membershipInsertedEvent)
+    let membershipInsertedEvent: MembershipInserted = createMembershipInsertedEvent(
+      BigInt.fromI32(1),
+      "test2",
+      BigInt.fromI32(0),
+      BigInt.fromI32(0),
+      BigInt.fromI32(0),
+      BigInt.fromI32(0),
+      BigInt.fromI32(0),
+    );
+    handleMembershipInserted(membershipInsertedEvent);
     let event: MembershipUpdated = createMembershipUpdatedEvent(BigInt.fromI32(1), "test3", BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0));
     handleMembershipUpdated(event);
     assert.entityCount("MembershipTier", 1);
