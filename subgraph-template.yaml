@@ -58,8 +58,8 @@ dataSources:
             handler: handlePassMinted
           - event: ReferralCodeCreated(string,uint256)
             handler: handleReferralCodeCreated
-          - event: ReferralRewardCreated(uint256,uint256,uint256)
-            handler: handleReferralRewardCreated
+          - event: ReferralBonusCreated(uint256,uint256,uint256,uint256)
+            handler: handleReferralBonusCreated
           - event: DepositCreated(uint256,uint256,uint256,uint256,uint256,uint256)
             handler: handleDepositCreated
           - event: MembershipTierChanged(uint256,uint256)

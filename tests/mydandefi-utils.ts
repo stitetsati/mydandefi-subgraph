@@ -1,5 +1,6 @@
 import { newMockEvent } from "matchstick-as";
 import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts";
+import { createMockedFunction } from "matchstick-as/assembly/index";
 import {
   MembershipUpdated,
   DurationBonusRateUpdated,
@@ -7,7 +8,7 @@ import {
   ReferralBonusRateUpdated,
   PassMinted,
   ReferralCodeCreated,
-  ReferralRewardCreated,
+  ReferralBonusCreated,
   DepositCreated,
   MembershipTierChanged,
   InterestClaimed,
@@ -115,7 +116,29 @@ export function createDepositCreatedEvent(tokenId: BigInt, depositId: BigInt, am
   return depositCreatedEvent;
 }
 
-// event ReferralRewardCreated(uint256 referrerTokenId, uint256 referralBonusId, uint256 referralLevel);
+export function createReferralBonusCreatedEvent(referrerTokenId: BigInt, referralBonusId: BigInt, referralLevel: BigInt, depositId: BigInt): ReferralBonusCreated {
+  let referralBonusCreatedEvent = changetype<ReferralBonusCreated>(newMockEvent());
+  referralBonusCreatedEvent.parameters = new Array();
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("referrerTokenId", ethereum.Value.fromSignedBigInt(referrerTokenId)));
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("referralBonusId", ethereum.Value.fromSignedBigInt(referralBonusId)));
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("referralLevel", ethereum.Value.fromSignedBigInt(referralLevel)));
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("depositId", ethereum.Value.fromSignedBigInt(depositId)));
+  let contractAddress = Address.fromString("0xA16081F360e3847006dB660bae1c6d1b2e17eC2A");
+  let zero = ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(0));
+  let startTime = zero;
+  let maturity = ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(365 * 60 * 60 * 24));
+  let referralBonusReceivable = ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(6_000000));
+  let rewardClaimed = zero;
+  let lastClaimedAt = zero;
+  let depositIdParam = ethereum.Value.fromUnsignedBigInt(depositId);
+  let referralLevelParam = ethereum.Value.fromUnsignedBigInt(referralLevel);
+  createMockedFunction(contractAddress, "referralBonuses", "referralBonuses(uint256,uint256):(uint256,uint256,uint256,uint256,uint256,uint256,uint256)")
+    .withArgs([zero, zero])
+    .returns([referralLevelParam, startTime, maturity, referralBonusReceivable, rewardClaimed, lastClaimedAt, depositIdParam]);
+
+  return referralBonusCreatedEvent;
+}
+// event ReferralBonusCreated(uint256 referrerTokenId, uint256 referralBonusId, uint256 referralLevel);
 // event DepositCreated(uint256 tokenId, uint256 depositId, uint256 amount, uint256 duration, uint256 interestRate, uint256 interestReceivable);
 // event MembershipTierChanged(uint256 tokenId, uint256 membershipTierIndex);
 // event InterestClaimed(uint256 tokenId, uint256 depositId, uint256 interestCollectible);

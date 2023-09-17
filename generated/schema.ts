@@ -481,19 +481,6 @@ export class Profile extends Entity {
     return new ProfileLoader("Profile", this.get("id")!.toString(), "referredProfiles");
   }
 
-  get referredProfileCount(): i32 {
-    let value = this.get("referredProfileCount");
-    if (!value || value.kind == ValueKind.NULL) {
-      return 0;
-    } else {
-      return value.toI32();
-    }
-  }
-
-  set referredProfileCount(value: i32) {
-    this.set("referredProfileCount", Value.fromI32(value));
-  }
-
   get referralBonuses(): ReferralBonusLoader {
     return new ReferralBonusLoader("Profile", this.get("id")!.toString(), "referralBonuses");
   }
@@ -676,6 +663,19 @@ export class ReferralBonus extends Entity {
 
   set isFinished(value: boolean) {
     this.set("isFinished", Value.fromBoolean(value));
+  }
+
+  get profileReferralLevelData(): string {
+    let value = this.get("profileReferralLevelData");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set profileReferralLevelData(value: string) {
+    this.set("profileReferralLevelData", Value.fromString(value));
   }
 }
 
@@ -884,17 +884,17 @@ export class ProfileReferralLevelData extends Entity {
     this.set("totalReferredPrincipals", Value.fromBigDecimal(value));
   }
 
-  get referredProfileCount(): i32 {
-    let value = this.get("referredProfileCount");
+  get referredCount(): BigInt {
+    let value = this.get("referredCount");
     if (!value || value.kind == ValueKind.NULL) {
-      return 0;
+      throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toI32();
+      return value.toBigInt();
     }
   }
 
-  set referredProfileCount(value: i32) {
-    this.set("referredProfileCount", Value.fromI32(value));
+  set referredCount(value: BigInt) {
+    this.set("referredCount", Value.fromBigInt(value));
   }
 
   get totalAnnualizedReferralBonuses(): BigDecimal {
@@ -910,17 +910,8 @@ export class ProfileReferralLevelData extends Entity {
     this.set("totalAnnualizedReferralBonuses", Value.fromBigDecimal(value));
   }
 
-  get referralBonuses(): Array<string> {
-    let value = this.get("referralBonuses");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set referralBonuses(value: Array<string>) {
-    this.set("referralBonuses", Value.fromStringArray(value));
+  get referralBonuses(): ReferralBonusLoader {
+    return new ReferralBonusLoader("ProfileReferralLevelData", this.get("id")!.toString(), "referralBonuses");
   }
 }
 

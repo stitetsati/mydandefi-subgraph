@@ -6,9 +6,9 @@ dataSources:
       name: MyDanPass
       network: goerli
       source:
-        address: "0x7892F323382872F3884a5Ff4823172AaDAdC8f97"
+        address: "0x297aa82C4E75eCd2e26612E86F2b8F7D508d596A"
         abi: MyDanPass
-        startBlock: 9703987
+        startBlock: 9710894
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.7
@@ -26,9 +26,9 @@ dataSources:
       name: MyDanDefi
       network: goerli
       source:
-        address: "0x2f5c896A1bc411d2b6046DD5b3f2Ad3EA0d1E2BD"
+        address: "0xB5653DeDD97afB700471D8edeE3053C1Dd45a350"
         abi: MyDanDefi
-        startBlock: 9703989
+        startBlock: 9710896
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.7
@@ -58,8 +58,8 @@ dataSources:
             handler: handlePassMinted
           - event: ReferralCodeCreated(string,uint256)
             handler: handleReferralCodeCreated
-          - event: ReferralRewardCreated(uint256,uint256,uint256)
-            handler: handleReferralRewardCreated
+          - event: ReferralBonusCreated(uint256,uint256,uint256,uint256)
+            handler: handleReferralBonusCreated
           - event: DepositCreated(uint256,uint256,uint256,uint256,uint256,uint256)
             handler: handleDepositCreated
           - event: MembershipTierChanged(uint256,uint256)

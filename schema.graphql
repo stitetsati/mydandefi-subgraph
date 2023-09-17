@@ -38,7 +38,6 @@ type Profile @entity {
   referralCode: String
   referredBy: Profile
   referredProfiles: [Profile!]! @derivedFrom(field: "referredBy")
-  referredProfileCount: Int!
   referralBonuses: [ReferralBonus!]! @derivedFrom(field: "beneficiary")
 }
 
@@ -55,6 +54,7 @@ type ReferralBonus @entity {
   duration: Duration!
   lastClaimedAt: BigInt!
   isFinished: Boolean!
+  profileReferralLevelData: ProfileReferralLevelData!
 }
 
 type Duration @entity {
@@ -75,7 +75,7 @@ type ProfileReferralLevelData @entity {
   profile: Profile!
   referralLevel: ReferralLevel!
   totalReferredPrincipals: BigDecimal!
-  referredProfileCount: Int!
+  referredCount: BigInt!
   totalAnnualizedReferralBonuses: BigDecimal!
-  referralBonuses: [ReferralBonus!]!
+  referralBonuses: [ReferralBonus!]! @derivedFrom(field: "profileReferralLevelData")
 }

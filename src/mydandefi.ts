@@ -6,7 +6,7 @@ import {
   ReferralBonusRateUpdated,
   PassMinted,
   ReferralCodeCreated,
-  ReferralRewardCreated,
+  ReferralBonusCreated,
   DepositCreated,
   MembershipTierChanged,
   InterestClaimed,
@@ -15,8 +15,9 @@ import {
   ReferralBonusLevelCollectionDeactivated,
   DepositWithdrawn,
 } from "../generated/MyDanDefi/MyDanDefi";
-import { ReferralLevel, Duration, MembershipTier, Profile, User, Deposit } from "../generated/schema";
+import { ProfileReferralLevelData, ReferralBonus, ReferralLevel, Duration, MembershipTier, Profile, User, Deposit } from "../generated/schema";
 import { exponentToBigDecimal, loadUser, createProfile } from "./utils";
+import { MyDanDefi as MyDanDefiContract } from "../generated/MyDanDefi/MyDanDefi";
 
 export function handleMembershipInserted(event: MembershipInserted): void {
   let insertedMembershipTier = event.params.insertedMembershipTier;
@@ -114,7 +115,48 @@ export function handleMembershipTierChanged(event: MembershipTierChanged): void 
   profile.membershipTier = membershipTier.id;
   profile.save();
 }
-export function handleReferralRewardCreated(event: ReferralRewardCreated): void {}
+export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
+  let contract = MyDanDefiContract.bind(event.address);
+  let referralBonusOnContract = contract.referralBonuses(event.params.referrerTokenId, event.params.referralBonusId);
+  let profile = Profile.load(event.params.referrerTokenId.toHex())!;
+  let referralLevel = ReferralLevel.load(event.params.referralLevel.toHex())!;
+  let referralBonusId = event.params.referralBonusId;
+  let referralBonus = new ReferralBonus(referralBonusId.toHex());
+  let duration = referralBonusOnContract.getMaturity().minus(referralBonusOnContract.getStartTime());
+  referralBonus.beneficiary = profile.id;
+  referralBonus.associatedDeposit = referralBonusOnContract.getDepositId().toHex();
+  referralBonus.referralLevel = referralLevel.id;
+  referralBonus.bonusReceivable = referralBonusOnContract.getReferralBonusReceivable().toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+  referralBonus.annualizedBonusReceivable = referralBonus.bonusReceivable.times(BigDecimal.fromString("31536000")).div(duration.toBigDecimal());
+  referralBonus.bonusClaimed = BigDecimal.fromString("0");
+  referralBonus.startTime = event.block.timestamp;
+  referralBonus.maturity = referralBonusOnContract.getMaturity();
+  referralBonus.duration = duration.toHex();
+  referralBonus.lastClaimedAt = BigInt.fromI64(0);
+  referralBonus.isFinished = false;
+
+  // effects to profile
+  // TODO: see depositCount? or profileCount?
+
+  let deposit = Deposit.load(event.params.depositId.toHex())!;
+  let profileReferralLevelDataId = profile.id + "-" + referralLevel.id;
+  let profileReferralLevelData = ProfileReferralLevelData.load(profileReferralLevelDataId);
+  if (profileReferralLevelData == null) {
+    profileReferralLevelData = new ProfileReferralLevelData(profileReferralLevelDataId);
+    profileReferralLevelData.profile = profile.id;
+    profileReferralLevelData.referralLevel = referralLevel.id;
+    profileReferralLevelData.totalReferredPrincipals = BigDecimal.fromString("0");
+    profileReferralLevelData.referredCount = BigInt.fromI32(0);
+    profileReferralLevelData.totalAnnualizedReferralBonuses = BigDecimal.fromString("0");
+  }
+  profileReferralLevelData.totalAnnualizedReferralBonuses = profileReferralLevelData.totalAnnualizedReferralBonuses.plus(referralBonus.annualizedBonusReceivable);
+  profileReferralLevelData.referredCount = profileReferralLevelData.referredCount.plus(BigInt.fromI32(1));
+  profileReferralLevelData.totalReferredPrincipals = profileReferralLevelData.totalReferredPrincipals.plus(deposit.principal);
+  profileReferralLevelData.save();
+  referralBonus.profileReferralLevelData = profileReferralLevelData.id;
+  referralBonus.profileReferralLevelData = "0x0";
+  referralBonus.save();
+}
 export function handleInterestClaimed(event: InterestClaimed): void {}
 export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {}
 export function handleReferralBonusLevelCollectionActivated(event: ReferralBonusLevelCollectionActivated): void {}

@@ -2,6 +2,7 @@ import { assert, describe, test, clearStore, beforeAll, afterAll, afterEach, bef
 import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { DurationBonusRateUpdated, MembershipInserted, MembershipUpdated, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
 import {
+  handleReferralBonusCreated,
   handleDepositCreated,
   handleMembershipInserted,
   handleMembershipUpdated,
@@ -11,6 +12,7 @@ import {
   handleReferralCodeCreated,
 } from "../src/mydandefi";
 import {
+  createReferralBonusCreatedEvent,
   createReferralCodeCreatedEvent,
   createPassMintedEvent,
   createDurationBonusRateUpdatedEvent,
@@ -108,7 +110,7 @@ describe("test mydandefi event handlers without setup", () => {
 
 let user: Address;
 describe("test mydandefi event handlers with setup", () => {
-  beforeEach(() => {
+  beforeAll(() => {
     // create genesis user
     user = Address.fromString("0x000000000000000000000000000000000000dead");
     handleTransfer(createTransferEvent(zeroAddress, user, BigInt.fromI64(0)));
@@ -140,7 +142,7 @@ describe("test mydandefi event handlers with setup", () => {
       handleReferralBonusRateUpdated(createReferralBonusRateUpdatedEvent(BigInt.fromI64(i), BigInt.fromI64(referralBonusRates[i])));
     }
   });
-  afterEach(() => {
+  afterAll(() => {
     clearStore();
   });
   test("test handleDepositCreated", () => {
@@ -164,5 +166,20 @@ describe("test mydandefi event handlers with setup", () => {
     assert.fieldEquals("Deposit", "0x0", "lastClaimedAt", "0");
     assert.fieldEquals("MembershipTier", "0x0", "totalDeposits", "100");
     assert.fieldEquals("Profile", "0x1", "totalDeposits", "100");
+  });
+  test("test handleReferralBonusCreated", () => {
+    let referralTokenId = BigInt.fromI64(0);
+    let referralBonusId = BigInt.fromI64(0);
+    let referralLevel = BigInt.fromI64(1);
+    let depositId = BigInt.fromI64(0);
+    handleReferralBonusCreated(createReferralBonusCreatedEvent(referralTokenId, referralBonusId, referralLevel, depositId));
+    assert.entityCount("ReferralBonus", 1);
+    assert.fieldEquals("ReferralBonus", "0x0", "referralLevel", BigInt.fromU64(1).toHex());
+    assert.fieldEquals("ReferralBonus", "0x0", "beneficiary", "0x0");
+    assert.fieldEquals("ReferralBonus", "0x0", "associatedDeposit", "0x0");
+    assert.fieldEquals("ReferralBonus", "0x0", "bonusReceivable", "6");
+    assert.fieldEquals("ReferralBonus", "0x0", "annualizedBonusReceivable", "6");
+    assert.fieldEquals("ReferralBonus", "0x0", "bonusClaimed", "0");
+    // TODO: test ProfileReferralLevelData
   });
 });
