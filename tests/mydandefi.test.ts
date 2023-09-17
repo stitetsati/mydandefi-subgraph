@@ -3,9 +3,17 @@ import { Address, BigInt } from "@graphprotocol/graph-ts";
 import { DurationBonusRateUpdated, MembershipInserted, MembershipUpdated, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
 import { handleMembershipInserted, handleMembershipUpdated, handleDurationBonusRateUpdated, handleReferralBonusRateUpdated } from "../src/mydandefi";
 import { createDurationBonusRateUpdatedEvent, createMembershipInsertedEvent, createMembershipUpdatedEvent, createReferralBonusRateUpdatedEvent } from "./mydandefi-utils";
+import { handleTransfer } from "../src/mydanpass";
+import { createTransferEvent } from "./mydanpass-utils";
 
+let zeroAddress: Address;
+let toAddress: Address;
 describe("test mydandefi event handlers", () => {
-  beforeAll(() => {});
+  beforeAll(() => {
+    zeroAddress = Address.fromString("0x0000000000000000000000000000000000000000");
+    toAddress = Address.fromString("0x0000000000000000000000000000000000000001");
+    handleTransfer(createTransferEvent(zeroAddress, toAddress, BigInt.fromI32(0)));
+  });
 
   afterAll(() => {
     clearStore();
@@ -16,6 +24,7 @@ describe("test mydandefi event handlers", () => {
     handleMembershipInserted(event);
     assert.entityCount("MembershipTier", 1);
     assert.fieldEquals("MembershipTier", "0x0", "name", "test");
+    assert.fieldEquals("Profile", "0x0", "membershipTier", "0x0");
   });
   test("test second handleMembershipInserted", () => {
     let event: MembershipInserted = createMembershipInsertedEvent(BigInt.fromI32(1), "test2", BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0), BigInt.fromI32(0));

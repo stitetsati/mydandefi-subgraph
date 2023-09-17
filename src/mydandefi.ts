@@ -1,6 +1,6 @@
-import { BigDecimal } from "@graphprotocol/graph-ts";
+import { BigDecimal, BigInt } from "@graphprotocol/graph-ts";
 import { MembershipUpdated, DurationBonusRateUpdated, MembershipInserted, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
-import { ReferralLevel, Duration, MembershipTier } from "../generated/schema";
+import { ReferralLevel, Duration, MembershipTier, Profile } from "../generated/schema";
 import { exponentToBigDecimal } from "./utils";
 
 export function handleMembershipInserted(event: MembershipInserted): void {
@@ -12,7 +12,15 @@ export function handleMembershipInserted(event: MembershipInserted): void {
   membershipTier.interestRate = insertedMembershipTier.interestRate.toBigDecimal();
   membershipTier.maxCollectableReferralLevel = insertedMembershipTier.referralBonusCollectibleLevelUpperBound;
   membershipTier.totalDeposits = BigDecimal.fromString("0");
+  membershipTier.index = event.params.index;
   membershipTier.save();
+  if (membershipTier.index == BigInt.fromI32(0)) {
+    let genesisProfile = Profile.load("0x0");
+    if (genesisProfile != null) {
+      genesisProfile.membershipTier = membershipTier.id;
+      genesisProfile.save();
+    }
+  }
 }
 
 export function handleMembershipUpdated(event: MembershipUpdated): void {
