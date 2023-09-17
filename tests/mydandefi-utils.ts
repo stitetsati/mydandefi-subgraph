@@ -93,6 +93,15 @@ export function createPassMintedEvent(minter: Address, tokenId: BigInt, referrer
   return passMintedEvent;
 }
 
+export function createReferralCodeCreatedEvent(referralCode: string, tokenId: BigInt): ReferralCodeCreated {
+  let referralCodeCreatedEvent = changetype<ReferralCodeCreated>(newMockEvent());
+
+  referralCodeCreatedEvent.parameters = new Array();
+  referralCodeCreatedEvent.parameters.push(new ethereum.EventParam("referralCode", ethereum.Value.fromString(referralCode)));
+  referralCodeCreatedEvent.parameters.push(new ethereum.EventParam("tokenId", ethereum.Value.fromSignedBigInt(tokenId)));
+  return referralCodeCreatedEvent;
+}
+
 // event PassMinted(address minter, uint256 mintedTokenId, uint256 referrerTokenId);
 // event ReferralCodeCreated(string referralCode, uint256 tokenId);
 // event ReferralRewardCreated(uint256 referrerTokenId, uint256 referralBonusId, uint256 referralLevel);

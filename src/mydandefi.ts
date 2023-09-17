@@ -76,7 +76,11 @@ export function handlePassMinted(event: PassMinted): void {
   profile.owner = owner.id;
   profile.save();
 }
-export function handleReferralCodeCreated(event: ReferralCodeCreated): void {}
+export function handleReferralCodeCreated(event: ReferralCodeCreated): void {
+  let profile = Profile.load(event.params.tokenId.toHex())!;
+  profile.referralCode = event.params.referralCode;
+  profile.save();
+}
 export function handleReferralRewardCreated(event: ReferralRewardCreated): void {}
 export function handleDepositCreated(event: DepositCreated): void {}
 export function handleMembershipTierChanged(event: MembershipTierChanged): void {}
