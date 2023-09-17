@@ -21,7 +21,7 @@ dataSources:
         eventHandlers:
           - event: Transfer(indexed address,indexed address,indexed uint256)
             handler: handleTransfer
-        file: ./src/mydan-pass.ts
+        file: ./src/mydanpass.ts
     - kind: ethereum
       name: MyDanDefi
       network: goerli

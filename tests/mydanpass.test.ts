@@ -1,7 +1,7 @@
 import { assert, describe, test, clearStore, beforeAll, afterAll } from "matchstick-as/assembly/index";
 import { Address } from "@graphprotocol/graph-ts";
 import { Transfer, TransferFromCall } from "../generated/MyDanPass/MyDanPass";
-import { handleTransfer } from "../src/mydan-pass";
+import { handleTransfer } from "../src/mydanpass";
 import { createTransferEvent } from "./mydanpass-utils";
 import { BigInt } from "@graphprotocol/graph-ts";
 // Tests structure (matchstick-as >=0.5.0)

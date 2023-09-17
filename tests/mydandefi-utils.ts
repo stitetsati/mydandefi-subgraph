@@ -1,6 +1,6 @@
 import { newMockEvent } from "matchstick-as";
 import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts";
-import { MembershipInserted, MembershipUpdated } from "../generated/MyDanDefi/MyDanDefi";
+import { MembershipInserted, MembershipUpdated, DurationBonusRateUpdated, ReferralBonusRateUpdated } from "../generated/MyDanDefi/MyDanDefi";
 
 export function createMembershipInsertedEvent(
   index: BigInt,
@@ -48,4 +48,22 @@ export function createMembershipUpdatedEvent(
   membershipUpdatedEvent.parameters.push(new ethereum.EventParam("index", ethereum.Value.fromSignedBigInt(index)));
   membershipUpdatedEvent.parameters.push(new ethereum.EventParam("updatedMembershipTier", ethereum.Value.fromTuple(updatedEvent)));
   return membershipUpdatedEvent;
+}
+
+export function createDurationBonusRateUpdatedEvent(duration: BigInt, newRate: BigInt): DurationBonusRateUpdated {
+  let durationBonusRateUpdatedEvent = changetype<DurationBonusRateUpdated>(newMockEvent());
+
+  durationBonusRateUpdatedEvent.parameters = new Array();
+  durationBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("duration", ethereum.Value.fromSignedBigInt(duration)));
+  durationBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("newRate", ethereum.Value.fromSignedBigInt(newRate)));
+  return durationBonusRateUpdatedEvent;
+}
+
+export function createReferralBonusRateUpdatedEvent(referralLevel: BigInt, bonusRate: BigInt): ReferralBonusRateUpdated {
+  let referralBonusRateUpdatedEvent = changetype<ReferralBonusRateUpdated>(newMockEvent());
+
+  referralBonusRateUpdatedEvent.parameters = new Array();
+  referralBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("referralLevel", ethereum.Value.fromSignedBigInt(referralLevel)));
+  referralBonusRateUpdatedEvent.parameters.push(new ethereum.EventParam("bonusRate", ethereum.Value.fromSignedBigInt(bonusRate)));
+  return referralBonusRateUpdatedEvent;
 }
