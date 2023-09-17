@@ -15,7 +15,7 @@ import {
   ReferralBonusLevelCollectionDeactivated,
   DepositWithdrawn,
 } from "../generated/MyDanDefi/MyDanDefi";
-import { ReferralLevel, Duration, MembershipTier, Profile, User } from "../generated/schema";
+import { ReferralLevel, Duration, MembershipTier, Profile, User, Deposit } from "../generated/schema";
 import { exponentToBigDecimal, loadUser, createProfile } from "./utils";
 
 export function handleMembershipInserted(event: MembershipInserted): void {
@@ -82,8 +82,6 @@ export function handleReferralCodeCreated(event: ReferralCodeCreated): void {
   profile.save();
 }
 export function handleReferralRewardCreated(event: ReferralRewardCreated): void {}
-export function handleDepositCreated(event: DepositCreated): void {}
-export function handleMembershipTierChanged(event: MembershipTierChanged): void {}
 export function handleInterestClaimed(event: InterestClaimed): void {}
 export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {}
 export function handleReferralBonusLevelCollectionActivated(event: ReferralBonusLevelCollectionActivated): void {}

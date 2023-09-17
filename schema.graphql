@@ -34,6 +34,7 @@ type Profile @entity {
   owner: User!
   membershipTier: MembershipTier!
   deposits: [Deposit!]!
+  totalDeposit: BigDecimal!
   referralCode: String
   referredBy: Profile
   referredProfiles: [Profile!]! @derivedFrom(field: "referredBy")
@@ -55,7 +56,6 @@ type ReferralBonus @entity {
   lastClaimedAt: BigInt!
   isFinished: Boolean!
 }
-
 
 type Duration @entity {
   id: ID!
