@@ -1,12 +1,13 @@
 {
   "MYDANPASS_ADDRESS": {
     "mainnet": 0,
-    "goerli": "0x7892F323382872F3884a5Ff4823172AaDAdC8f97"
+    "goerli": "0x297aa82C4E75eCd2e26612E86F2b8F7D508d596A"
   },
-  "MYDANPASS_START_BLOCK": { "mainnet": 1, "goerli": "9703987" },
+  "MYDANPASS_START_BLOCK": { "mainnet": 1, "goerli": "9710894" },
   "MYDANDEFI_PROXY_ADDRESS": {
     "mainnet": 1,
-    "goerli": "0x2f5c896A1bc411d2b6046DD5b3f2Ad3EA0d1E2BD"
+    "goerli": "0xB5653DeDD97afB700471D8edeE3053C1Dd45a350"
   },
-  "MYDANDEFI_PROXY_START_BLOCK": { "mainnet": 1, "goerli": "9703989" }
+  "MYDANDEFI_PROXY_START_BLOCK": { "mainnet": 1, "goerli": "9710896" 
+}
 }

@@ -103,19 +103,6 @@ export class MembershipTier extends Entity {
     this.set("interestRate", Value.fromBigDecimal(value));
   }
 
-  get totalDeposits(): BigDecimal {
-    let value = this.get("totalDeposits");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigDecimal();
-    }
-  }
-
-  set totalDeposits(value: BigDecimal) {
-    this.set("totalDeposits", Value.fromBigDecimal(value));
-  }
-
   get maxCollectableReferralLevel(): BigInt {
     let value = this.get("maxCollectableReferralLevel");
     if (!value || value.kind == ValueKind.NULL) {
@@ -481,21 +468,12 @@ export class Profile extends Entity {
     return new ProfileLoader("Profile", this.get("id")!.toString(), "referredProfiles");
   }
 
-  get referredProfileCount(): i32 {
-    let value = this.get("referredProfileCount");
-    if (!value || value.kind == ValueKind.NULL) {
-      return 0;
-    } else {
-      return value.toI32();
-    }
-  }
-
-  set referredProfileCount(value: i32) {
-    this.set("referredProfileCount", Value.fromI32(value));
-  }
-
   get referralBonuses(): ReferralBonusLoader {
     return new ReferralBonusLoader("Profile", this.get("id")!.toString(), "referralBonuses");
+  }
+
+  get referralLevelData(): ProfileReferralLevelDataLoader {
+    return new ProfileReferralLevelDataLoader("Profile", this.get("id")!.toString(), "referralLevelData");
   }
 }
 
@@ -676,6 +654,19 @@ export class ReferralBonus extends Entity {
 
   set isFinished(value: boolean) {
     this.set("isFinished", Value.fromBoolean(value));
+  }
+
+  get profileReferralLevelData(): string {
+    let value = this.get("profileReferralLevelData");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set profileReferralLevelData(value: string) {
+    this.set("profileReferralLevelData", Value.fromString(value));
   }
 }
 
@@ -884,17 +875,17 @@ export class ProfileReferralLevelData extends Entity {
     this.set("totalReferredPrincipals", Value.fromBigDecimal(value));
   }
 
-  get referredProfileCount(): i32 {
-    let value = this.get("referredProfileCount");
+  get referredCount(): BigInt {
+    let value = this.get("referredCount");
     if (!value || value.kind == ValueKind.NULL) {
-      return 0;
+      throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toI32();
+      return value.toBigInt();
     }
   }
 
-  set referredProfileCount(value: i32) {
-    this.set("referredProfileCount", Value.fromI32(value));
+  set referredCount(value: BigInt) {
+    this.set("referredCount", Value.fromBigInt(value));
   }
 
   get totalAnnualizedReferralBonuses(): BigDecimal {
@@ -910,17 +901,8 @@ export class ProfileReferralLevelData extends Entity {
     this.set("totalAnnualizedReferralBonuses", Value.fromBigDecimal(value));
   }
 
-  get referralBonuses(): Array<string> {
-    let value = this.get("referralBonuses");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toStringArray();
-    }
-  }
-
-  set referralBonuses(value: Array<string>) {
-    this.set("referralBonuses", Value.fromStringArray(value));
+  get referralBonuses(): ReferralBonusLoader {
+    return new ReferralBonusLoader("ProfileReferralLevelData", this.get("id")!.toString(), "referralBonuses");
   }
 }
 
@@ -957,6 +939,24 @@ export class ReferralBonusLoader extends Entity {
   load(): ReferralBonus[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<ReferralBonus[]>(value);
+  }
+}
+
+export class ProfileReferralLevelDataLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): ProfileReferralLevelData[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<ProfileReferralLevelData[]>(value);
   }
 }
 

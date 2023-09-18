@@ -1,5 +1,6 @@
 import { newMockEvent } from "matchstick-as";
 import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts";
+import { createMockedFunction } from "matchstick-as/assembly/index";
 import {
   MembershipUpdated,
   DurationBonusRateUpdated,
@@ -7,7 +8,7 @@ import {
   ReferralBonusRateUpdated,
   PassMinted,
   ReferralCodeCreated,
-  ReferralRewardCreated,
+  ReferralBonusCreated,
   DepositCreated,
   MembershipTierChanged,
   InterestClaimed,
@@ -115,7 +116,61 @@ export function createDepositCreatedEvent(tokenId: BigInt, depositId: BigInt, am
   return depositCreatedEvent;
 }
 
-// event ReferralRewardCreated(uint256 referrerTokenId, uint256 referralBonusId, uint256 referralLevel);
+export function createReferralBonusCreatedEvent(referrerTokenId: BigInt, referralBonusId: BigInt, referralLevel: BigInt, depositId: BigInt): ReferralBonusCreated {
+  let referralBonusCreatedEvent = changetype<ReferralBonusCreated>(newMockEvent());
+  referralBonusCreatedEvent.parameters = new Array();
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("referrerTokenId", ethereum.Value.fromSignedBigInt(referrerTokenId)));
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("referralBonusId", ethereum.Value.fromSignedBigInt(referralBonusId)));
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("referralLevel", ethereum.Value.fromSignedBigInt(referralLevel)));
+  referralBonusCreatedEvent.parameters.push(new ethereum.EventParam("depositId", ethereum.Value.fromSignedBigInt(depositId)));
+  let contractAddress = Address.fromString("0xA16081F360e3847006dB660bae1c6d1b2e17eC2A");
+  let zero = ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(0));
+  let startTime = zero;
+  let maturity = ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(365 * 60 * 60 * 24));
+  let referralBonusReceivable = ethereum.Value.fromUnsignedBigInt(BigInt.fromU64(6_000000));
+  let rewardClaimed = zero;
+  let lastClaimedAt = zero;
+  let depositIdParam = ethereum.Value.fromUnsignedBigInt(depositId);
+  let referralLevelParam = ethereum.Value.fromUnsignedBigInt(referralLevel);
+  createMockedFunction(contractAddress, "referralBonuses", "referralBonuses(uint256,uint256):(uint256,uint256,uint256,uint256,uint256,uint256,uint256)")
+    .withArgs([zero, zero])
+    .returns([referralLevelParam, startTime, maturity, referralBonusReceivable, rewardClaimed, lastClaimedAt, depositIdParam]);
+
+  return referralBonusCreatedEvent;
+}
+export function createInterestClaimedEvent(tokenId: BigInt, depositId: BigInt, interestCollectible: BigInt): InterestClaimed {
+  let interestClaimedEvent = changetype<InterestClaimed>(newMockEvent());
+
+  interestClaimedEvent.parameters = new Array();
+  interestClaimedEvent.parameters.push(new ethereum.EventParam("tokenId", ethereum.Value.fromSignedBigInt(tokenId)));
+  interestClaimedEvent.parameters.push(new ethereum.EventParam("depositId", ethereum.Value.fromSignedBigInt(depositId)));
+  interestClaimedEvent.parameters.push(new ethereum.EventParam("interestCollectible", ethereum.Value.fromSignedBigInt(interestCollectible)));
+  return interestClaimedEvent;
+}
+export function createReferralBonusClaimedEvent(tokenId: BigInt, referralBonusId: BigInt, rewardCollectible: BigInt): ReferralBonusClaimed {
+  let referralBonusClaimedEvent = changetype<ReferralBonusClaimed>(newMockEvent());
+
+  referralBonusClaimedEvent.parameters = new Array();
+  referralBonusClaimedEvent.parameters.push(new ethereum.EventParam("tokenId", ethereum.Value.fromSignedBigInt(tokenId)));
+  referralBonusClaimedEvent.parameters.push(new ethereum.EventParam("referralBonusId", ethereum.Value.fromSignedBigInt(referralBonusId)));
+  referralBonusClaimedEvent.parameters.push(new ethereum.EventParam("rewardCollectible", ethereum.Value.fromSignedBigInt(rewardCollectible)));
+  referralBonusClaimedEvent.block.timestamp = BigInt.fromU64(1_000_000_000_000);
+  return referralBonusClaimedEvent;
+}
+
+export function createDepositWithdrawnEvent(tokenId: BigInt, depositId: BigInt, principal: BigInt): DepositWithdrawn {
+  let depositWithdrawnEvent = changetype<DepositWithdrawn>(newMockEvent());
+
+  depositWithdrawnEvent.parameters = new Array();
+  depositWithdrawnEvent.parameters.push(new ethereum.EventParam("tokenId", ethereum.Value.fromSignedBigInt(tokenId)));
+  depositWithdrawnEvent.parameters.push(new ethereum.EventParam("depositId", ethereum.Value.fromSignedBigInt(depositId)));
+  depositWithdrawnEvent.parameters.push(new ethereum.EventParam("principal", ethereum.Value.fromSignedBigInt(principal)));
+  return depositWithdrawnEvent;
+}
+
+// event InterestClaimed(uint256 tokenId, uint256 depositId, uint256 interestCollectible);
+
+// event ReferralBonusCreated(uint256 referrerTokenId, uint256 referralBonusId, uint256 referralLevel);
 // event DepositCreated(uint256 tokenId, uint256 depositId, uint256 amount, uint256 duration, uint256 interestRate, uint256 interestReceivable);
 // event MembershipTierChanged(uint256 tokenId, uint256 membershipTierIndex);
 // event InterestClaimed(uint256 tokenId, uint256 depositId, uint256 interestCollectible);

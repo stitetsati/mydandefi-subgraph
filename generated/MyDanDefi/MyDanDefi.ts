@@ -382,6 +382,36 @@ export class ReferralBonusClaimed__Params {
   }
 }
 
+export class ReferralBonusCreated extends ethereum.Event {
+  get params(): ReferralBonusCreated__Params {
+    return new ReferralBonusCreated__Params(this);
+  }
+}
+
+export class ReferralBonusCreated__Params {
+  _event: ReferralBonusCreated;
+
+  constructor(event: ReferralBonusCreated) {
+    this._event = event;
+  }
+
+  get referrerTokenId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get referralBonusId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get referralLevel(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get depositId(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+}
+
 export class ReferralBonusLevelCollectionActivated extends ethereum.Event {
   get params(): ReferralBonusLevelCollectionActivated__Params {
     return new ReferralBonusLevelCollectionActivated__Params(this);
@@ -483,32 +513,6 @@ export class ReferralCodeCreated__Params {
 
   get tokenId(): BigInt {
     return this._event.parameters[1].value.toBigInt();
-  }
-}
-
-export class ReferralRewardCreated extends ethereum.Event {
-  get params(): ReferralRewardCreated__Params {
-    return new ReferralRewardCreated__Params(this);
-  }
-}
-
-export class ReferralRewardCreated__Params {
-  _event: ReferralRewardCreated;
-
-  constructor(event: ReferralRewardCreated) {
-    this._event = event;
-  }
-
-  get referrerTokenId(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
-  }
-
-  get referralBonusId(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-
-  get referralLevel(): BigInt {
-    return this._event.parameters[2].value.toBigInt();
   }
 }
 
@@ -689,7 +693,7 @@ export class MyDanDefi__profilesResult {
   }
 }
 
-export class MyDanDefi__referralRewardsResult {
+export class MyDanDefi__referralBonusesResult {
   value0: BigInt;
   value1: BigInt;
   value2: BigInt;
@@ -966,6 +970,21 @@ export class MyDanDefi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  getAllReferrers(tokenId: BigInt): Array<BigInt> {
+    let result = super.call("getAllReferrers", "getAllReferrers(uint256):(uint256[])", [ethereum.Value.fromUnsignedBigInt(tokenId)]);
+
+    return result[0].toBigIntArray();
+  }
+
+  try_getAllReferrers(tokenId: BigInt): ethereum.CallResult<Array<BigInt>> {
+    let result = super.tryCall("getAllReferrers", "getAllReferrers(uint256):(uint256[])", [ethereum.Value.fromUnsignedBigInt(tokenId)]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(value[0].toBigIntArray());
+  }
+
   getClaimableReferralBonus(tokenId: BigInt, referralBonusIds: Array<BigInt>): BigInt {
     let result = super.call("getClaimableReferralBonus", "getClaimableReferralBonus(uint256,uint256[]):(uint256)", [
       ethereum.Value.fromUnsignedBigInt(tokenId),
@@ -1070,14 +1089,14 @@ export class MyDanDefi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
-  nextReferralRewardId(): BigInt {
-    let result = super.call("nextReferralRewardId", "nextReferralRewardId():(uint256)", []);
+  nextReferralBonusId(): BigInt {
+    let result = super.call("nextReferralBonusId", "nextReferralBonusId():(uint256)", []);
 
     return result[0].toBigInt();
   }
 
-  try_nextReferralRewardId(): ethereum.CallResult<BigInt> {
-    let result = super.tryCall("nextReferralRewardId", "nextReferralRewardId():(uint256)", []);
+  try_nextReferralBonusId(): ethereum.CallResult<BigInt> {
+    let result = super.tryCall("nextReferralBonusId", "nextReferralBonusId():(uint256)", []);
     if (result.reverted) {
       return new ethereum.CallResult();
     }
@@ -1145,6 +1164,37 @@ export class MyDanDefi extends ethereum.SmartContract {
     return ethereum.CallResult.fromValue(value[0].toBigInt());
   }
 
+  referralBonuses(param0: BigInt, param1: BigInt): MyDanDefi__referralBonusesResult {
+    let result = super.call("referralBonuses", "referralBonuses(uint256,uint256):(uint256,uint256,uint256,uint256,uint256,uint256,uint256)", [
+      ethereum.Value.fromUnsignedBigInt(param0),
+      ethereum.Value.fromUnsignedBigInt(param1),
+    ]);
+
+    return new MyDanDefi__referralBonusesResult(
+      result[0].toBigInt(),
+      result[1].toBigInt(),
+      result[2].toBigInt(),
+      result[3].toBigInt(),
+      result[4].toBigInt(),
+      result[5].toBigInt(),
+      result[6].toBigInt(),
+    );
+  }
+
+  try_referralBonuses(param0: BigInt, param1: BigInt): ethereum.CallResult<MyDanDefi__referralBonusesResult> {
+    let result = super.tryCall("referralBonuses", "referralBonuses(uint256,uint256):(uint256,uint256,uint256,uint256,uint256,uint256,uint256)", [
+      ethereum.Value.fromUnsignedBigInt(param0),
+      ethereum.Value.fromUnsignedBigInt(param1),
+    ]);
+    if (result.reverted) {
+      return new ethereum.CallResult();
+    }
+    let value = result.value;
+    return ethereum.CallResult.fromValue(
+      new MyDanDefi__referralBonusesResult(value[0].toBigInt(), value[1].toBigInt(), value[2].toBigInt(), value[3].toBigInt(), value[4].toBigInt(), value[5].toBigInt(), value[6].toBigInt()),
+    );
+  }
+
   referralCodes(param0: string): BigInt {
     let result = super.call("referralCodes", "referralCodes(string):(uint256)", [ethereum.Value.fromString(param0)]);
 
@@ -1158,37 +1208,6 @@ export class MyDanDefi extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
-  }
-
-  referralRewards(param0: BigInt, param1: BigInt): MyDanDefi__referralRewardsResult {
-    let result = super.call("referralRewards", "referralRewards(uint256,uint256):(uint256,uint256,uint256,uint256,uint256,uint256,uint256)", [
-      ethereum.Value.fromUnsignedBigInt(param0),
-      ethereum.Value.fromUnsignedBigInt(param1),
-    ]);
-
-    return new MyDanDefi__referralRewardsResult(
-      result[0].toBigInt(),
-      result[1].toBigInt(),
-      result[2].toBigInt(),
-      result[3].toBigInt(),
-      result[4].toBigInt(),
-      result[5].toBigInt(),
-      result[6].toBigInt(),
-    );
-  }
-
-  try_referralRewards(param0: BigInt, param1: BigInt): ethereum.CallResult<MyDanDefi__referralRewardsResult> {
-    let result = super.tryCall("referralRewards", "referralRewards(uint256,uint256):(uint256,uint256,uint256,uint256,uint256,uint256,uint256)", [
-      ethereum.Value.fromUnsignedBigInt(param0),
-      ethereum.Value.fromUnsignedBigInt(param1),
-    ]);
-    if (result.reverted) {
-      return new ethereum.CallResult();
-    }
-    let value = result.value;
-    return ethereum.CallResult.fromValue(
-      new MyDanDefi__referralRewardsResult(value[0].toBigInt(), value[1].toBigInt(), value[2].toBigInt(), value[3].toBigInt(), value[4].toBigInt(), value[5].toBigInt(), value[6].toBigInt()),
-    );
   }
 
   targetToken(): Address {
