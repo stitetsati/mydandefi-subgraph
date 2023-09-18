@@ -170,7 +170,9 @@ export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {
     profileReferralLevelData.referredCount = profileReferralLevelData.referredCount.minus(BigInt.fromI32(1));
     let deposit = Deposit.load(referralBonus.associatedDeposit)!;
     profileReferralLevelData.totalReferredPrincipals = profileReferralLevelData.totalReferredPrincipals.minus(deposit.principal);
+    profileReferralLevelData.save();
   }
+
   referralBonus.save();
 }
 export function handleReferralBonusLevelCollectionActivated(event: ReferralBonusLevelCollectionActivated): void {}
