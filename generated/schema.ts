@@ -103,19 +103,6 @@ export class MembershipTier extends Entity {
     this.set("interestRate", Value.fromBigDecimal(value));
   }
 
-  get totalDeposits(): BigDecimal {
-    let value = this.get("totalDeposits");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigDecimal();
-    }
-  }
-
-  set totalDeposits(value: BigDecimal) {
-    this.set("totalDeposits", Value.fromBigDecimal(value));
-  }
-
   get maxCollectableReferralLevel(): BigInt {
     let value = this.get("maxCollectableReferralLevel");
     if (!value || value.kind == ValueKind.NULL) {
@@ -483,6 +470,10 @@ export class Profile extends Entity {
 
   get referralBonuses(): ReferralBonusLoader {
     return new ReferralBonusLoader("Profile", this.get("id")!.toString(), "referralBonuses");
+  }
+
+  get referralLevelData(): ProfileReferralLevelDataLoader {
+    return new ProfileReferralLevelDataLoader("Profile", this.get("id")!.toString(), "referralLevelData");
   }
 }
 
@@ -948,6 +939,24 @@ export class ReferralBonusLoader extends Entity {
   load(): ReferralBonus[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<ReferralBonus[]>(value);
+  }
+}
+
+export class ProfileReferralLevelDataLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): ProfileReferralLevelData[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<ProfileReferralLevelData[]>(value);
   }
 }
 

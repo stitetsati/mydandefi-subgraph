@@ -27,7 +27,6 @@ export function handleMembershipInserted(event: MembershipInserted): void {
   membershipTier.upperAmountThreshold = insertedMembershipTier.upperThreshold.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
   membershipTier.interestRate = insertedMembershipTier.interestRate.toBigDecimal();
   membershipTier.maxCollectableReferralLevel = insertedMembershipTier.referralBonusCollectibleLevelUpperBound;
-  membershipTier.totalDeposits = BigDecimal.fromString("0");
   membershipTier.index = event.params.index;
   membershipTier.save();
   if (membershipTier.index == BigInt.fromI32(0)) {
@@ -101,11 +100,7 @@ export function handleDepositCreated(event: DepositCreated): void {
   deposit.lastClaimedAt = BigInt.fromI32(0);
   deposit.isWithdrawn = false;
   deposit.save();
-  // effects to profile and membership
-  let membershipTier = MembershipTier.load(profile.membershipTier)!;
-
-  membershipTier.totalDeposits = membershipTier.totalDeposits.plus(deposit.principal);
-  membershipTier.save();
+  // effects to profile
   profile.totalDeposits = profile.totalDeposits.plus(deposit.principal);
   profile.save();
 }
@@ -154,11 +149,37 @@ export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
   profileReferralLevelData.totalReferredPrincipals = profileReferralLevelData.totalReferredPrincipals.plus(deposit.principal);
   profileReferralLevelData.save();
   referralBonus.profileReferralLevelData = profileReferralLevelData.id;
-  referralBonus.profileReferralLevelData = "0x0";
   referralBonus.save();
 }
-export function handleInterestClaimed(event: InterestClaimed): void {}
-export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {}
+export function handleInterestClaimed(event: InterestClaimed): void {
+  let deposit = Deposit.load(event.params.depositId.toHex())!;
+  deposit.interestCollected = deposit.interestCollected.plus(event.params.interestCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
+  deposit.lastClaimedAt = event.block.timestamp;
+  deposit.save();
+}
+export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {
+  let referralBonus = ReferralBonus.load(event.params.referralBonusId.toHex())!;
+  referralBonus.bonusClaimed = referralBonus.bonusClaimed.plus(event.params.rewardCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
+  referralBonus.lastClaimedAt = event.block.timestamp;
+  if (event.block.timestamp >= referralBonus.maturity) {
+    referralBonus.isFinished = true;
+    // effects to profile
+    let profileReferralLevelDataId = event.params.tokenId.toHex() + "-" + referralBonus.referralLevel;
+    let profileReferralLevelData = ProfileReferralLevelData.load(profileReferralLevelDataId)!;
+    profileReferralLevelData.totalAnnualizedReferralBonuses = profileReferralLevelData.totalAnnualizedReferralBonuses.minus(referralBonus.annualizedBonusReceivable);
+    profileReferralLevelData.referredCount = profileReferralLevelData.referredCount.minus(BigInt.fromI32(1));
+    let deposit = Deposit.load(referralBonus.associatedDeposit)!;
+    profileReferralLevelData.totalReferredPrincipals = profileReferralLevelData.totalReferredPrincipals.minus(deposit.principal);
+  }
+  referralBonus.save();
+}
 export function handleReferralBonusLevelCollectionActivated(event: ReferralBonusLevelCollectionActivated): void {}
 export function handleReferralBonusLevelCollectionDeactivated(event: ReferralBonusLevelCollectionDeactivated): void {}
-export function handleDepositWithdrawn(event: DepositWithdrawn): void {}
+export function handleDepositWithdrawn(event: DepositWithdrawn): void {
+  let deposit = Deposit.load(event.params.depositId.toHex())!;
+  deposit.isWithdrawn = true;
+  deposit.save();
+  let profile = Profile.load(event.params.tokenId.toHex())!;
+  profile.totalDeposits = profile.totalDeposits.minus(deposit.principal);
+  profile.save();
+}

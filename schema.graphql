@@ -5,7 +5,6 @@ type MembershipTier @entity {
   lowerAmountThreshold: BigDecimal!
   upperAmountThreshold: BigDecimal!
   interestRate: BigDecimal!
-  totalDeposits: BigDecimal!
   maxCollectableReferralLevel: BigInt!
   profiles: [Profile!]! @derivedFrom(field: "membershipTier")
 }
@@ -39,6 +38,7 @@ type Profile @entity {
   referredBy: Profile
   referredProfiles: [Profile!]! @derivedFrom(field: "referredBy")
   referralBonuses: [ReferralBonus!]! @derivedFrom(field: "beneficiary")
+  referralLevelData: [ProfileReferralLevelData!]! @derivedFrom(field: "profile")
 }
 
 type ReferralBonus @entity {
