@@ -32,7 +32,7 @@ type Profile @entity {
   tokenId: BigInt!
   owner: User!
   membershipTier: MembershipTier!
-  deposits: [Deposit!]!
+  deposits: [Deposit!]! @derivedFrom(field: "depositor") 
   totalDeposits: BigDecimal!
   referralCode: String
   referredBy: Profile
