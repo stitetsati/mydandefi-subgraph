@@ -1,3 +1,9 @@
+type Protocol @entity{
+  id: ID!
+  totalMembers: BigInt!
+  totalDeposits: BigDecimal!
+  totalRewardsPlusBonuses: BigDecimal!
+}
 type MembershipTier @entity {
   id: ID!
   index: BigInt!
@@ -11,6 +17,7 @@ type MembershipTier @entity {
 
 type Deposit @entity {
   id: ID!
+  depositId: BigInt!
   principal: BigDecimal!
   depositor: Profile!
   startTime: BigInt!
@@ -34,6 +41,8 @@ type Profile @entity {
   membershipTier: MembershipTier!
   deposits: [Deposit!]! @derivedFrom(field: "depositor") 
   totalDeposits: BigDecimal!
+  totalAnnualizedRewardsPlusReferralBonuses: BigDecimal!
+  totalRewardsPlusBonusesWithdrawn: BigDecimal!
   referralCode: String
   referredBy: Profile
   referredProfiles: [Profile!]! @derivedFrom(field: "referredBy")
@@ -43,6 +52,7 @@ type Profile @entity {
 
 type ReferralBonus @entity {
   id: ID!
+  referralBonusId: BigInt!
   beneficiary: Profile!
   associatedDeposit: Deposit!
   referralLevel: ReferralLevel!

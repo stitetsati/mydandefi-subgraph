@@ -1,7 +1,7 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { Transfer } from "../generated/MyDanPass/MyDanPass";
 import { Profile } from "../generated/schema";
-import { loadUser, createProfile } from "./utils";
+import { loadUser, createProfile, loadProtocol } from "./utils";
 
 export function handleTransfer(event: Transfer): void {
   // genesis profile creation is handled here
@@ -17,4 +17,5 @@ export function handleTransfer(event: Transfer): void {
   let toUser = loadUser(event.params.to.toHex());
   profile.owner = toUser.id;
   profile.save();
+  loadProtocol();
 }

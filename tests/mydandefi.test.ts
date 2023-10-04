@@ -210,9 +210,12 @@ describe("test mydandefi event handlers with setup", () => {
     let depositId = BigInt.fromI64(0);
     let principal = BigInt.fromI64(100_000000);
     let event = createDepositWithdrawnEvent(tokenId, depositId, principal);
+
     handleDepositWithdrawn(event);
     assert.entityCount("Deposit", 1);
     assert.fieldEquals("Deposit", "0x0", "isWithdrawn", "true");
+    assert.fieldEquals("Profile", "0x1", "totalDeposits", "0");
+
     assert.fieldEquals("Profile", "0x1", "totalDeposits", "0");
   });
 });

@@ -16,7 +16,7 @@ import {
   DepositWithdrawn,
 } from "../generated/MyDanDefi/MyDanDefi";
 import { ProfileReferralLevelData, ReferralBonus, ReferralLevel, Duration, MembershipTier, Profile, User, Deposit } from "../generated/schema";
-import { exponentToBigDecimal, loadUser, createProfile } from "./utils";
+import { exponentToBigDecimal, loadUser, createProfile, loadProtocol } from "./utils";
 import { MyDanDefi as MyDanDefiContract } from "../generated/MyDanDefi/MyDanDefi";
 
 export function handleMembershipInserted(event: MembershipInserted): void {
@@ -75,6 +75,9 @@ export function handlePassMinted(event: PassMinted): void {
   let owner = loadUser(event.params.minter.toHex());
   profile.owner = owner.id;
   profile.save();
+  let protocol = loadProtocol();
+  protocol.totalMembers = protocol.totalMembers.plus(BigInt.fromI32(1));
+  protocol.save();
 }
 export function handleReferralCodeCreated(event: ReferralCodeCreated): void {
   let profile = Profile.load(event.params.tokenId.toHex())!;
@@ -84,13 +87,16 @@ export function handleReferralCodeCreated(event: ReferralCodeCreated): void {
 
 export function handleDepositCreated(event: DepositCreated): void {
   let profile = Profile.load(event.params.tokenId.toHex())!;
+
   // create deposit
   let deposit = new Deposit(event.params.depositId.toHex());
+  deposit.depositId = event.params.depositId;
   deposit.depositor = profile.id;
   deposit.principal = event.params.amount.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
   deposit.duration = Duration.load(event.params.duration.toHex())!.id;
   deposit.startTime = event.block.timestamp;
   deposit.maturity = event.block.timestamp.plus(event.params.duration);
+
   let oneYear = BigDecimal.fromString("31536000");
   let interestReceivableScaled = event.params.interestReceivable.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
   let annualizedInterestReceivable = interestReceivableScaled.times(oneYear).div(event.params.duration.toBigDecimal());
@@ -102,7 +108,13 @@ export function handleDepositCreated(event: DepositCreated): void {
   deposit.save();
   // effects to profile
   profile.totalDeposits = profile.totalDeposits.plus(deposit.principal);
+  profile.totalAnnualizedRewardsPlusReferralBonuses = profile.totalAnnualizedRewardsPlusReferralBonuses.plus(deposit.annualizedInterestReceivable);
   profile.save();
+
+  let protocol = loadProtocol();
+  protocol.totalDeposits = protocol.totalDeposits.plus(deposit.principal);
+  protocol.totalRewardsPlusBonuses = protocol.totalRewardsPlusBonuses.plus(deposit.annualizedInterestReceivable);
+  protocol.save();
 }
 export function handleMembershipTierChanged(event: MembershipTierChanged): void {
   let profile = Profile.load(event.params.tokenId.toHex())!;
@@ -118,6 +130,7 @@ export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
   let referralBonusId = event.params.referralBonusId;
   let referralBonus = new ReferralBonus(referralBonusId.toHex());
   let duration = referralBonusOnContract.getMaturity().minus(referralBonusOnContract.getStartTime());
+  referralBonus.referralBonusId = referralBonusId;
   referralBonus.beneficiary = profile.id;
   referralBonus.associatedDeposit = referralBonusOnContract.getDepositId().toHex();
   referralBonus.referralLevel = referralLevel.id;
@@ -129,6 +142,8 @@ export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
   referralBonus.duration = duration.toHex();
   referralBonus.lastClaimedAt = BigInt.fromI64(0);
   referralBonus.isFinished = false;
+  // update profile stats
+  profile.totalAnnualizedRewardsPlusReferralBonuses = profile.totalAnnualizedRewardsPlusReferralBonuses.plus(referralBonus.annualizedBonusReceivable);
 
   // effects to profile
   // TODO: see depositCount? or profileCount?
@@ -150,16 +165,28 @@ export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
   profileReferralLevelData.save();
   referralBonus.profileReferralLevelData = profileReferralLevelData.id;
   referralBonus.save();
+  profile.save();
+
+  let protocol = loadProtocol();
+  protocol.totalRewardsPlusBonuses = protocol.totalRewardsPlusBonuses.plus(referralBonus.annualizedBonusReceivable);
+  protocol.save();
 }
 export function handleInterestClaimed(event: InterestClaimed): void {
   let deposit = Deposit.load(event.params.depositId.toHex())!;
   deposit.interestCollected = deposit.interestCollected.plus(event.params.interestCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
   deposit.lastClaimedAt = event.block.timestamp;
+  let profile = Profile.load(deposit.depositor)!;
+  profile.totalRewardsPlusBonusesWithdrawn = profile.totalRewardsPlusBonusesWithdrawn.plus(event.params.interestCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
+  profile.save();
   deposit.save();
 }
 export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {
   let referralBonus = ReferralBonus.load(event.params.referralBonusId.toHex())!;
+  let beneficiaryProfile = Profile.load(referralBonus.beneficiary)!;
   referralBonus.bonusClaimed = referralBonus.bonusClaimed.plus(event.params.rewardCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
+  beneficiaryProfile.totalRewardsPlusBonusesWithdrawn = beneficiaryProfile.totalRewardsPlusBonusesWithdrawn.plus(
+    event.params.rewardCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6),
+  );
   referralBonus.lastClaimedAt = event.block.timestamp;
   if (event.block.timestamp >= referralBonus.maturity) {
     referralBonus.isFinished = true;
@@ -171,17 +198,27 @@ export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {
     let deposit = Deposit.load(referralBonus.associatedDeposit)!;
     profileReferralLevelData.totalReferredPrincipals = profileReferralLevelData.totalReferredPrincipals.minus(deposit.principal);
     profileReferralLevelData.save();
-  }
+    beneficiaryProfile.totalAnnualizedRewardsPlusReferralBonuses = beneficiaryProfile.totalAnnualizedRewardsPlusReferralBonuses.minus(referralBonus.annualizedBonusReceivable);
 
+    let protocol = loadProtocol();
+    protocol.totalRewardsPlusBonuses = protocol.totalRewardsPlusBonuses.minus(referralBonus.annualizedBonusReceivable);
+    protocol.save();
+  }
+  beneficiaryProfile.save();
   referralBonus.save();
 }
 export function handleReferralBonusLevelCollectionActivated(event: ReferralBonusLevelCollectionActivated): void {}
 export function handleReferralBonusLevelCollectionDeactivated(event: ReferralBonusLevelCollectionDeactivated): void {}
 export function handleDepositWithdrawn(event: DepositWithdrawn): void {
   let deposit = Deposit.load(event.params.depositId.toHex())!;
+  let profile = Profile.load(deposit.depositor)!;
   deposit.isWithdrawn = true;
-  deposit.save();
-  let profile = Profile.load(event.params.tokenId.toHex())!;
+  profile.totalAnnualizedRewardsPlusReferralBonuses = profile.totalAnnualizedRewardsPlusReferralBonuses.minus(deposit.annualizedInterestReceivable);
   profile.totalDeposits = profile.totalDeposits.minus(deposit.principal);
+  deposit.save();
   profile.save();
+  let protocol = loadProtocol();
+  protocol.totalDeposits = protocol.totalDeposits.minus(deposit.principal);
+  protocol.totalRewardsPlusBonuses = protocol.totalRewardsPlusBonuses.minus(deposit.annualizedInterestReceivable);
+  protocol.save();
 }
