@@ -3,6 +3,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ mydandefi-subgraph-test",
+    "deploy-bsc":"graph deploy --product hosted-service stitetsati/mydandefi-bnb",
     "create-local": "graph create --node http://localhost:8020/ mydandefi-subgraph-test",
     "remove-local": "graph remove --node http://localhost:8020/ mydandefi-subgraph-test",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 mydandefi-subgraph-test",

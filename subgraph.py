@@ -7,7 +7,7 @@ with open('deployment.json', 'r') as f:
 
 # Check the NETWORK environment variable
 NETWORK = os.environ.get('NETWORK')
-if NETWORK not in ['mainnet', 'goerli']:
+if NETWORK not in ['mainnet', 'goerli', 'bsc']:
     print("Error: NETWORK must be 'mainnet' or 'goerli'")
     exit(1)
 

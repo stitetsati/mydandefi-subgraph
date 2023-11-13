@@ -4,11 +4,11 @@ schema:
 dataSources:
     - kind: ethereum
       name: MyDanPass
-      network: goerli
+      network: bsc
       source:
-        address: "0x297aa82C4E75eCd2e26612E86F2b8F7D508d596A"
+        address: "0xb2C4502442c9CaF42520b1E4A6767Ba6C550b913"
         abi: MyDanPass
-        startBlock: 9710894
+        startBlock: 33445378
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.7
@@ -25,11 +25,11 @@ dataSources:
         file: ./src/mydanpass.ts
     - kind: ethereum
       name: MyDanDefi
-      network: goerli
+      network: bsc
       source:
-        address: "0xB5653DeDD97afB700471D8edeE3053C1Dd45a350"
+        address: "0xD31B2A1881Fae19950b9105dB8716C95B2aD10E0"
         abi: MyDanDefi
-        startBlock: 9710896
+        startBlock: 33445395
       mapping:
         kind: ethereum/events
         apiVersion: 0.0.7
