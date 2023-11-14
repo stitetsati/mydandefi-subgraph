@@ -44,6 +44,8 @@ dataSources:
           - ReferralLevel
           - ProfileReferralLevelData
         abis:
+          - name: BEP20
+            file: ./abis/BEP20.json
           - name: MyDanDefi
             file: ./abis/MyDanDefi.json
         eventHandlers:

@@ -18,13 +18,19 @@ import {
 import { ProfileReferralLevelData, ReferralBonus, ReferralLevel, Duration, MembershipTier, Profile, User, Deposit } from "../generated/schema";
 import { exponentToBigDecimal, loadUser, createProfile, loadProtocol } from "./utils";
 import { MyDanDefi as MyDanDefiContract } from "../generated/MyDanDefi/MyDanDefi";
+import { BEP20 } from "../generated/MyDanDefi/BEP20";
 
 export function handleMembershipInserted(event: MembershipInserted): void {
   let insertedMembershipTier = event.params.insertedMembershipTier;
   let membershipTier = new MembershipTier(event.params.index.toHex());
+  let contract = MyDanDefiContract.bind(event.address);
+  let targetTokenAddress = contract.targetToken();
+  let targetToken = BEP20.bind(targetTokenAddress);
+  let decimals = targetToken.decimals();
+
   membershipTier.name = insertedMembershipTier.name;
-  membershipTier.lowerAmountThreshold = insertedMembershipTier.lowerThreshold.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
-  membershipTier.upperAmountThreshold = insertedMembershipTier.upperThreshold.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+  membershipTier.lowerAmountThreshold = insertedMembershipTier.lowerThreshold.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals);
+  membershipTier.upperAmountThreshold = insertedMembershipTier.upperThreshold.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals);
   membershipTier.interestRate = insertedMembershipTier.interestRate.toBigDecimal();
   membershipTier.maxCollectableReferralLevel = insertedMembershipTier.referralBonusCollectibleLevelUpperBound;
   membershipTier.index = event.params.index;
@@ -41,9 +47,13 @@ export function handleMembershipInserted(event: MembershipInserted): void {
 export function handleMembershipUpdated(event: MembershipUpdated): void {
   let updatedMembershipTier = event.params.updatedMembershipTier;
   let membershipTier = MembershipTier.load(event.params.index.toHex())!;
+  let contract = MyDanDefiContract.bind(event.address);
+  let targetTokenAddress = contract.targetToken();
+  let targetToken = BEP20.bind(targetTokenAddress);
+  let decimals = targetToken.decimals();
   membershipTier.name = updatedMembershipTier.name;
-  membershipTier.lowerAmountThreshold = updatedMembershipTier.lowerThreshold.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
-  membershipTier.upperAmountThreshold = updatedMembershipTier.upperThreshold.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+  membershipTier.lowerAmountThreshold = updatedMembershipTier.lowerThreshold.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals);
+  membershipTier.upperAmountThreshold = updatedMembershipTier.upperThreshold.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals);
   membershipTier.interestRate = updatedMembershipTier.interestRate.toBigDecimal();
   membershipTier.maxCollectableReferralLevel = updatedMembershipTier.referralBonusCollectibleLevelUpperBound;
   membershipTier.save();
@@ -87,18 +97,22 @@ export function handleReferralCodeCreated(event: ReferralCodeCreated): void {
 
 export function handleDepositCreated(event: DepositCreated): void {
   let profile = Profile.load(event.params.tokenId.toHex())!;
+  let contract = MyDanDefiContract.bind(event.address);
+  let targetTokenAddress = contract.targetToken();
+  let targetToken = BEP20.bind(targetTokenAddress);
+  let decimals = targetToken.decimals();
 
   // create deposit
   let deposit = new Deposit(event.params.depositId.toHex());
   deposit.depositId = event.params.depositId;
   deposit.depositor = profile.id;
-  deposit.principal = event.params.amount.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+  deposit.principal = event.params.amount.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals);
   deposit.duration = Duration.load(event.params.duration.toHex())!.id;
   deposit.startTime = event.block.timestamp;
   deposit.maturity = event.block.timestamp.plus(event.params.duration);
 
   let oneYear = BigDecimal.fromString("31536000");
-  let interestReceivableScaled = event.params.interestReceivable.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+  let interestReceivableScaled = event.params.interestReceivable.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals);
   let annualizedInterestReceivable = interestReceivableScaled.times(oneYear).div(event.params.duration.toBigDecimal());
   deposit.annualizedInterestReceivable = annualizedInterestReceivable;
   deposit.interestReceivable = interestReceivableScaled;
@@ -124,6 +138,9 @@ export function handleMembershipTierChanged(event: MembershipTierChanged): void 
 }
 export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
   let contract = MyDanDefiContract.bind(event.address);
+  let targetTokenAddress = contract.targetToken();
+  let targetToken = BEP20.bind(targetTokenAddress);
+  let decimals = targetToken.decimals();
   let referralBonusOnContract = contract.referralBonuses(event.params.referrerTokenId, event.params.referralBonusId);
   let profile = Profile.load(event.params.referrerTokenId.toHex())!;
   let referralLevel = ReferralLevel.load(event.params.referralLevel.toHex())!;
@@ -134,7 +151,8 @@ export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
   referralBonus.beneficiary = profile.id;
   referralBonus.associatedDeposit = referralBonusOnContract.getDepositId().toHex();
   referralBonus.referralLevel = referralLevel.id;
-  referralBonus.bonusReceivable = referralBonusOnContract.getReferralBonusReceivable().toBigDecimal().div(exponentToBigDecimal(6)).truncate(6);
+
+  referralBonus.bonusReceivable = referralBonusOnContract.getReferralBonusReceivable().toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals);
   referralBonus.annualizedBonusReceivable = referralBonus.bonusReceivable.times(BigDecimal.fromString("31536000")).div(duration.toBigDecimal());
   referralBonus.bonusClaimed = BigDecimal.fromString("0");
   referralBonus.startTime = event.block.timestamp;
@@ -172,20 +190,29 @@ export function handleReferralBonusCreated(event: ReferralBonusCreated): void {
   protocol.save();
 }
 export function handleInterestClaimed(event: InterestClaimed): void {
+  let contract = MyDanDefiContract.bind(event.address);
+  let targetTokenAddress = contract.targetToken();
+  let targetToken = BEP20.bind(targetTokenAddress);
+  let decimals = targetToken.decimals();
   let deposit = Deposit.load(event.params.depositId.toHex())!;
-  deposit.interestCollected = deposit.interestCollected.plus(event.params.interestCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
+  deposit.interestCollected = deposit.interestCollected.plus(event.params.interestCollectible.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals));
   deposit.lastClaimedAt = event.block.timestamp;
   let profile = Profile.load(deposit.depositor)!;
-  profile.totalRewardsPlusBonusesWithdrawn = profile.totalRewardsPlusBonusesWithdrawn.plus(event.params.interestCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
+  profile.totalRewardsPlusBonusesWithdrawn = profile.totalRewardsPlusBonusesWithdrawn.plus(event.params.interestCollectible.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals));
   profile.save();
   deposit.save();
 }
 export function handleReferralBonusClaimed(event: ReferralBonusClaimed): void {
+  let contract = MyDanDefiContract.bind(event.address);
+  let targetTokenAddress = contract.targetToken();
+  let targetToken = BEP20.bind(targetTokenAddress);
+  let decimals = targetToken.decimals();
+
   let referralBonus = ReferralBonus.load(event.params.referralBonusId.toHex())!;
   let beneficiaryProfile = Profile.load(referralBonus.beneficiary)!;
-  referralBonus.bonusClaimed = referralBonus.bonusClaimed.plus(event.params.rewardCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6));
+  referralBonus.bonusClaimed = referralBonus.bonusClaimed.plus(event.params.rewardCollectible.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals));
   beneficiaryProfile.totalRewardsPlusBonusesWithdrawn = beneficiaryProfile.totalRewardsPlusBonusesWithdrawn.plus(
-    event.params.rewardCollectible.toBigDecimal().div(exponentToBigDecimal(6)).truncate(6),
+    event.params.rewardCollectible.toBigDecimal().div(exponentToBigDecimal(decimals)).truncate(decimals),
   );
   referralBonus.lastClaimedAt = event.block.timestamp;
   if (event.block.timestamp >= referralBonus.maturity) {
